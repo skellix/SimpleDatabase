@@ -7,6 +7,11 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.nio.MappedByteBuffer;
 
+/**
+ * 
+ * @author Alexander Jones <24k911@gmail.com"> 
+ *
+ */
 public class TableColumn {
 
 	private int size = 0;

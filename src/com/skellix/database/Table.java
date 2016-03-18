@@ -8,6 +8,11 @@ import java.nio.channels.FileChannel.MapMode;
 import java.nio.channels.FileLock;
 import java.util.HashMap;
 
+/**
+ * 
+ * @author Alexander Jones <24k911@gmail.com"> 
+ *
+ */
 public class Table {
 
 	private File directory = null;

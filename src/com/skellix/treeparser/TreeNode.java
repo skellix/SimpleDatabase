@@ -1,19 +1,11 @@
 package com.skellix.treeparser;
 
-
-
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-/**
- * This file was included from: https://github.com/skellix/tree_parser
- * and the owner has given their permission for it to be used and or modified
- * in this program.
- */
 
 /**
  * 

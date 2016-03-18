@@ -6,6 +6,11 @@ import java.util.HashMap;
 import com.skellix.treeparser.TreeNode;
 import com.skellix.treeparser.TreeParser;
 
+/**
+ * 
+ * @author Alexander Jones <24k911@gmail.com"> 
+ *
+ */
 public abstract class Database {
 
 	public abstract void init();
