@@ -50,21 +50,34 @@ public class Table {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-		}
-		
-		try {
-			RandomAccessFile randomAccessFile = new RandomAccessFile(sizeFile, "rw");
 			
-			size = new TableColumn(Long.BYTES, randomAccessFile.getChannel().map(MapMode.READ_WRITE, 0, Long.BYTES));
-			
-			randomAccessFile.close();
-			
-			synchronized (size) {
-				size.setLong(0);
+			try {
+				RandomAccessFile randomAccessFile = new RandomAccessFile(sizeFile, "rw");
+				
+				size = new TableColumn(Long.BYTES, randomAccessFile.getChannel().map(MapMode.READ_WRITE, 0, Long.BYTES));
+				
+				randomAccessFile.close();
+				
+				synchronized (size) {
+					size.setLong(0);
+				}
+				
+			} catch (IOException e) {
+				e.printStackTrace();
 			}
 			
-		} catch (IOException e) {
-			e.printStackTrace();
+		} else {
+			
+			try {
+				RandomAccessFile randomAccessFile = new RandomAccessFile(sizeFile, "rw");
+				
+				size = new TableColumn(Long.BYTES, randomAccessFile.getChannel().map(MapMode.READ_WRITE, 0, Long.BYTES));
+				
+				randomAccessFile.close();
+				
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
 		
 		this.rowFormat = rowFormat;
@@ -148,6 +161,20 @@ public class Table {
 		return rowFile;
 	}
 	
+	/***
+	 * Method for easily adding a row to the table
+	 * @return The row added
+	 */
+	public TableColumn[] addRow() {
+		
+		return getRow(getTableSize());
+	}
+	
+	/***
+	 * Retrieve a row from the table by index
+	 * @param index of the row
+	 * @return the row at the specified index
+	 */
 	public TableColumn[] getRow(long index) {
 		
 		File rowFile = safeRowGet(index);
