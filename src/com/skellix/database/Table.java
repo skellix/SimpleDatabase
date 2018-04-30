@@ -9,6 +9,7 @@ import java.nio.channels.FileLock;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.stream.Stream;
 
 /**
  * 
@@ -70,6 +71,12 @@ public class Table {
 		for (String key : rowFormat.keySet()) {
 			rowSize += rowFormat.get(key);
 		}
+	}
+	
+	public Stream<TableColumn[]> stream() {
+		
+		Stream<Integer> stream = Stream.iterate(0, i -> i + 1);
+		return stream.limit(getTableSize()).map(i -> getRow(i));
 	}
 	
 	public File getDirectory() {
