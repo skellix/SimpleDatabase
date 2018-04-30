@@ -7,6 +7,8 @@ import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel.MapMode;
 import java.nio.channels.FileLock;
 import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 
 /**
  * 
@@ -16,11 +18,11 @@ import java.util.HashMap;
 public class Table {
 
 	private File directory = null;
-	private HashMap<String, Integer> rowFormat;
+	private Map<String, Integer> rowFormat;
 	private int rowSize = 0;
 	private TableColumn size = null;
 	
-	public Table(File directory, HashMap<String, Integer> rowFormat) {
+	public Table(File directory, Map<String, Integer> rowFormat) {
 		
 		this.directory = directory;
 		
@@ -40,7 +42,7 @@ public class Table {
 				sizeFile.createNewFile();
 				OutputStream outputStream = new FileOutputStream(sizeFile);
 				
-				outputStream.write(new byte[8]);
+				outputStream.write(new byte[Long.BYTES]);
 				
 				outputStream.close();
 				
@@ -52,12 +54,12 @@ public class Table {
 		try {
 			RandomAccessFile randomAccessFile = new RandomAccessFile(sizeFile, "rw");
 			
-			size = new TableColumn(8, randomAccessFile.getChannel().map(MapMode.READ_WRITE, 0, 8));
+			size = new TableColumn(Long.BYTES, randomAccessFile.getChannel().map(MapMode.READ_WRITE, 0, Long.BYTES));
 			
 			randomAccessFile.close();
 			
 			synchronized (size) {
-				size.setInt(0);
+				size.setLong(0);
 			}
 			
 		} catch (IOException e) {
@@ -78,17 +80,34 @@ public class Table {
 		return rowSize;
 	}
 	
-	public int getTableSize() {
+	public long getTableSize() {
 		synchronized (size) {
-			return size.getInt();
+			return size.getLong();
 		}
+	}
+	
+	public Integer getColumnIndex(String columnName) {
+		
+		int i = 0;
+		
+		for (Entry<String, Integer> column : getRowFormat().entrySet()) {
+			
+			if (column.getKey().equals(columnName)) {
+				
+				return i;
+			}
+			
+			i ++;
+		}
+		
+		return null;
 	}
 	
 	public HashMap<String, Integer> getRowFormat() {
 		return new HashMap<String, Integer>(rowFormat);
 	}
 	
-	private File safeRowGet(int index) {
+	private File safeRowGet(long index) {
 		
 		while (index > getTableSize()) {
 			safeRowGet(getTableSize());
@@ -115,14 +134,14 @@ public class Table {
 		
 		if (index == getTableSize()) {
 			synchronized (size) {
-				size.setInt(getTableSize()+ 1);
+				size.setLong(getTableSize()+ 1);
 			}
 		}
 		
 		return rowFile;
 	}
 	
-	public TableColumn[] getRow(int index) {
+	public TableColumn[] getRow(long index) {
 		
 		File rowFile = safeRowGet(index);
 		
@@ -132,7 +151,7 @@ public class Table {
 			String[] columnsNames = rowFormat.keySet().toArray(new String[0]);
 			TableColumn[] columns = new TableColumn[rowFormat.size()];
 			
-			int offset = 0;
+			long offset = 0;
 			for (int i = 0 ; i < columns.length ; i ++) {
 				
 				int columnSize = rowFormat.get(columnsNames[i]);
@@ -151,7 +170,7 @@ public class Table {
 		return null;
 	}
 	
-	public HashMap<String, TableColumn> getRowMap(int index) {
+	public HashMap<String, TableColumn> getRowMap(long index) {
 		
 		File rowFile = safeRowGet(index);
 		
@@ -161,7 +180,7 @@ public class Table {
 			String[] columnsNames = rowFormat.keySet().toArray(new String[0]);
 			HashMap<String, TableColumn> columns = new HashMap<String, TableColumn>();
 			
-			int offset = 0;
+			long offset = 0;
 			for (int i = 0 ; i < columnsNames.length ; i ++) {
 				
 				int columnSize = rowFormat.get(columnsNames[i]);
@@ -181,7 +200,7 @@ public class Table {
 		return null;
 	}
 	
-	public FileLock lockRow(int index) {
+	public FileLock lockRow(long index) {
 		
 		File rowFile = safeRowGet(index);
 		

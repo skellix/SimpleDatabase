@@ -2,6 +2,8 @@ package com.skellix.database;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import com.skellix.treeparser.TreeNode;
 import com.skellix.treeparser.TreeParser;
@@ -49,7 +51,7 @@ public abstract class Database {
 			
 			ArrayList<TreeNode> tableChildren = tableChildrenNode.children;
 			
-			HashMap<String, Integer> tableRowDef = new HashMap<String, Integer>();
+			Map<String, Integer> tableRowDef = new LinkedHashMap<String, Integer>();
 			
 			TreeNode last = tableChildrenNode;
 			for (int j = 0 ; j < tableChildren.size() ; j += 3) {

@@ -39,13 +39,7 @@ public class TableColumn {
 	}
 	
 	public void setString(String value) {
-		byte[] out = new byte[size];
-		byte[] valueBytes = value.getBytes();
-		for (int i = 0 ; i < value.length() ; i ++) {
-			out[i] = valueBytes[i];
-		}
-		buffer.rewind();
-		buffer.put(out, 0, size);
+		setBytes(value.getBytes());
 	}
 
 	public int getInt() {
@@ -56,6 +50,16 @@ public class TableColumn {
 	public void setInt(int value) {
 		buffer.rewind();
 		buffer.putInt(value);
+	}
+	
+	public long getLong() {
+		buffer.rewind();
+		return buffer.getLong();
+	}
+
+	public void setLong(long value) {
+		buffer.rewind();
+		buffer.putLong(value);
 	}
 	
 	public char getChar() {
