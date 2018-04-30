@@ -35,7 +35,18 @@ public class TableColumn {
 	}
 	
 	public String getString() {
-		return new String(getBytes());
+		
+		for (int i = 0 ; i < size ; i ++) {
+			
+			byte b = buffer.get(i);
+			
+			if (b == 0) {
+				
+				return new String(getBytes(), 0, i);
+			}
+		}
+		
+		return null;
 	}
 	
 	public void setString(String value) {
