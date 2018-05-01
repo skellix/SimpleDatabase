@@ -238,8 +238,7 @@ public class Table {
 		
 		File rowFile = safeRowGet(index);
 		
-		try {
-			RandomAccessFile randomAccessFile = new RandomAccessFile(rowFile, "rw");
+		try (RandomAccessFile randomAccessFile = new RandomAccessFile(rowFile, "rw")) {
 			
 			FileLock lock = null;
 			

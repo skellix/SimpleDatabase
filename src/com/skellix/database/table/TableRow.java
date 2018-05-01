@@ -6,12 +6,13 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.nio.MappedByteBuffer;
+import java.util.Arrays;
 
 public class TableRow {
 
 	private MappedByteBuffer buffer;
-	private int offset;
-	private int size;
+	public int offset;
+	public int size;
 
 	private TableRow(MappedByteBuffer buffer, int offset, int size) {
 		
@@ -27,8 +28,8 @@ public class TableRow {
 	
 	public byte[] getBytes(int columnOffset) {
 		buffer.position(offset + columnOffset);
-		byte[] out = new byte[size];
-		buffer.get(out, 0, size);
+		byte[] out = new byte[size - columnOffset];
+		buffer.get(out, 0, out.length);
 		return out;
 	}
 	
@@ -155,6 +156,14 @@ public class TableRow {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+
+	public void debugPrint() {
+		
+		buffer.position(offset);
+		byte[] rowData = new byte[size];
+		buffer.get(rowData);
+		System.out.printf("@%-4d %s\n", offset, Arrays.toString(rowData));
 	}
 
 }
