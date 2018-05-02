@@ -6,13 +6,20 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.nio.MappedByteBuffer;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import com.skellix.database.table.row.column.TableColumn;
 
 public class TableRow {
 
-	private MappedByteBuffer buffer;
+	public MappedByteBuffer buffer;
 	public int offset;
 	public int size;
+	@SuppressWarnings("rawtypes")
+	public List<TableColumn> columns;
 
 	private TableRow(MappedByteBuffer buffer, int offset, int size) {
 		
@@ -21,9 +28,31 @@ public class TableRow {
 		this.size = size;
 	}
 
-	public static TableRow map(MappedByteBuffer buffer, int offset, int rowSize) {
+	public static TableRow map(ExperimentalTable table, int offset, int rowSize) {
 		
-		return new TableRow(buffer, offset, rowSize);
+		TableRow tableRow = new TableRow(table.buffer, offset, rowSize);
+		
+		@SuppressWarnings("rawtypes")
+		List<TableColumn> columns = new ArrayList<>();
+		
+		for (String columnName : table.rowFormat.columnNames) {
+			
+			ColumnType columnType = table.rowFormat.columnTypes.get(columnName);
+			Integer columnOffset = table.rowFormat.columnOffsets.get(columnName);
+			columns.add(TableColumn.map(tableRow, columnType, columnOffset));
+		}
+		tableRow.columns = columns;
+		return tableRow;
+	}
+	
+	public byte getByte(int columnOffset) {
+		buffer.position(offset + columnOffset);
+		return buffer.get();
+	}
+	
+	public void setByte(int columnOffset, byte value) {
+		buffer.position(offset + columnOffset);
+		buffer.put(value);
 	}
 	
 	public byte[] getBytes(int columnOffset) {
@@ -164,6 +193,11 @@ public class TableRow {
 		byte[] rowData = new byte[size];
 		buffer.get(rowData);
 		System.out.printf("@%-4d %s\n", offset, Arrays.toString(rowData));
+	}
+
+	public Object[] getValueArray() {
+		
+		return columns.stream().map(column -> column.get()).collect(Collectors.toList()).toArray();
 	}
 
 }

@@ -15,11 +15,16 @@ class TestFragmentedExperimentalTable {
 		
 		Path directory = Paths.get("testData", "experimental");
 		
-		Map<String, Integer> tableFormat = new LinkedHashMap<>();
-		tableFormat.put("username", 16);
-		tableFormat.put("password", 32);
+		StringBuilder sb = new StringBuilder();
+		sb.append("{string username 16}");
+		sb.append("{string password 32}");
 		
-		ExperimentalTable table = new ExperimentalTable(directory, tableFormat);
+		RowFormat rowFormat = RowFormatter.parse(sb.toString());
+		
+		Integer username = rowFormat.columnIndexes.get("username");
+		Integer password = rowFormat.columnIndexes.get("password");
+		
+		ExperimentalTable table = new ExperimentalTable(directory, rowFormat);
 		try {
 			table.deleteTable();
 			table.initTable();
@@ -28,9 +33,6 @@ class TestFragmentedExperimentalTable {
 		}
 		
 		System.out.println("limit: " + table.buffer.limit());
-		
-		Integer USERNAME = table.columnOffset.get("username");
-		Integer PASSWORD = table.columnOffset.get("password");
 		
 		// 1       in   0.058s
 		// 10      in   0.074s
@@ -43,29 +45,26 @@ class TestFragmentedExperimentalTable {
 		for (int i = 0 ; i < 10000 ; i ++) {
 			
 			TableRow row0 = table.addRow();
-			row0.setString(USERNAME, "test");
-			row0.setString(PASSWORD, "testpassword");
+			row0.columns.get(username).set("test");
+			row0.columns.get(password).set("testpassword");
 			
 			TableRow row1 = table.addRow();
-			row1.setString(USERNAME, "test");
-			row1.setString(PASSWORD, "testpassword");
+			row1.columns.get(username).set("test");
+			row1.columns.get(password).set("testpassword");
 			
 			TableRow row2 = table.addRow();
-			row2.setString(USERNAME, "test");
-			row2.setString(PASSWORD, "testpassword");
+			row2.columns.get(username).set("test");
+			row2.columns.get(password).set("testpassword");
 			
 			table.deleteRow(row1);
-//			System.out.println("i:" + i);
-			table.clean();
-//			table.debugPrint();
 		}
 		
 		System.out.println("limit: " + table.buffer.limit());
 		System.out.println("row count: " + table.rowCount());
 		
-//		table.debugPrint();
-//		table.clean();
-//		table.debugPrint();
+		table.debugPrint();
+		table.clean();
+		table.debugPrint();
 	}
 
 }

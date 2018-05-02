@@ -17,11 +17,16 @@ class TestTableMapSharedInstances {
 		
 		Path directory = Paths.get("testData", "experimental");
 		
-		Map<String, Integer> tableFormat = new LinkedHashMap<>();
-		tableFormat.put("username", 16);
-		tableFormat.put("password", 32);
+		StringBuilder sb = new StringBuilder();
+		sb.append("{string username 16}");
+		sb.append("{string password 32}");
 		
-		ExperimentalTable table = new ExperimentalTable(directory, tableFormat);
+		RowFormat rowFormat = RowFormatter.parse(sb.toString());
+		
+		Integer username = rowFormat.columnIndexes.get("username");
+		Integer password = rowFormat.columnIndexes.get("password");
+		
+		ExperimentalTable table = new ExperimentalTable(directory, rowFormat);
 		try {
 			table.deleteTable();
 			table.initTable();
@@ -29,14 +34,11 @@ class TestTableMapSharedInstances {
 			e.printStackTrace();
 		}
 		
-		Integer USERNAME = table.columnOffset.get("username");
-		Integer PASSWORD = table.columnOffset.get("password");
-		
 		for (int i = 0 ; i < 3 ; i ++) {
 			
 			TableRow row = table.addRow();
-			row.setString(USERNAME, "test");
-			row.setString(PASSWORD, "testpassword");
+			row.columns.get(username).set("test");
+			row.columns.get(password).set("testpassword");
 		}
 		
 		TableMap tableMap1 = TableMap.read(table, 0);

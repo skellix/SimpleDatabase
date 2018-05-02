@@ -6,9 +6,6 @@ import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel.MapMode;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
@@ -17,11 +14,11 @@ public class ExperimentalTable {
 	
 	private Path tableFile;
 	public MappedByteBuffer buffer;
-	public Map<String, Integer> rowFormat;
-	public Map<String, Integer> columnOffset;
-	public int rowSize = 0;
+	public RowFormat rowFormat;
 	
-	public ExperimentalTable(Path directory, Map<String, Integer> rowFormat) {
+	public ExperimentalTable(Path directory, RowFormat rowFormat) {
+		
+		this.rowFormat = rowFormat;
 		
 		initDir(directory);
 		
@@ -41,15 +38,8 @@ public class ExperimentalTable {
 		}
 		
 		this.rowFormat = rowFormat;
-		columnOffset = new LinkedHashMap<>();
-		
-		for (String key : rowFormat.keySet()) {
-			
-			columnOffset.put(key, rowSize);
-			rowSize += rowFormat.get(key);
-		}
 	}
-	
+
 	public void deleteTable() throws IOException {
 		
 		System.out.println("deleting: " + tableFile.toAbsolutePath().toString());
@@ -68,9 +58,9 @@ public class ExperimentalTable {
 			if (tableMap.numberOfEntries == 0) {
 				
 				int offset = buffer.limit();
-				resize(offset + rowSize);
-				TableMap.addEntry(this, TableMap.ENTRY_TYPE_ROWS, offset, rowSize);
-				return TableRow.map(buffer, offset, rowSize);
+				resize(offset + rowFormat.rowSize);
+				TableMap.addEntry(this, TableMap.ENTRY_TYPE_ROWS, offset, rowFormat.rowSize);
+				return TableRow.map(this, offset, rowFormat.rowSize);
 			}
 			
 			for (int i = 0 ; i < tableMap.numberOfEntries ; i ++) {
@@ -79,7 +69,7 @@ public class ExperimentalTable {
 				int entryPointer = tableMap.entryPointers[i];
 				
 				if (entryType == TableMap.ENTRY_TYPE_FREE) {
-					if (tableMap.entryLengths[i] >= rowSize) {
+					if (tableMap.entryLengths[i] >= rowFormat.rowSize) {
 						
 						Entry<TableMap, Integer> tableMapBefore = TableMap.getBlockBefore(this, entryPointer);
 						
@@ -92,12 +82,12 @@ public class ExperimentalTable {
 							if (entryBeforeType == TableMap.ENTRY_TYPE_ROWS) {
 								
 								int offset = mapBefore.entryPointers[entryBeforeIndex] + mapBefore.entryLengths[entryBeforeIndex];
-								mapBefore.entryLengths[entryBeforeIndex] += rowSize;
-								tableMap.entryPointers[i] += rowSize;
-								tableMap.entryLengths[i] -= rowSize;
+								mapBefore.entryLengths[entryBeforeIndex] += rowFormat.rowSize;
+								tableMap.entryPointers[i] += rowFormat.rowSize;
+								tableMap.entryLengths[i] -= rowFormat.rowSize;
 								mapBefore.writeAt(buffer, mapBefore.position);
 								tableMap.writeAt(buffer, tableMap.position);
-								return TableRow.map(buffer, offset, rowSize);
+								return TableRow.map(this, offset, rowFormat.rowSize);
 							}
 						}
 						
@@ -112,12 +102,12 @@ public class ExperimentalTable {
 							if (entryAfterType == TableMap.ENTRY_TYPE_ROWS) {
 								
 								int offset = mapAfter.entryPointers[entryAfterIndex];
-								mapAfter.entryPointers[entryAfterIndex] += rowSize;
-								mapAfter.entryLengths[entryAfterIndex] -= rowSize;
-								tableMap.entryLengths[i] -= rowSize;
+								mapAfter.entryPointers[entryAfterIndex] += rowFormat.rowSize;
+								mapAfter.entryLengths[entryAfterIndex] -= rowFormat.rowSize;
+								tableMap.entryLengths[i] -= rowFormat.rowSize;
 								mapAfter.writeAt(buffer, mapAfter.position);
 								tableMap.writeAt(buffer, tableMap.position);
-								return TableRow.map(buffer, offset, rowSize);
+								return TableRow.map(this, offset, rowFormat.rowSize);
 							}
 						}
 					}
@@ -126,10 +116,10 @@ public class ExperimentalTable {
 					if (entryPointer + tableMap.entryLengths[i] == buffer.limit()) {
 						
 						int offset = buffer.limit();
-						resize(offset + rowSize);
-						tableMap.entryLengths[i] += rowSize;
+						resize(offset + rowFormat.rowSize);
+						tableMap.entryLengths[i] += rowFormat.rowSize;
 						tableMap.writeAt(buffer, tableMap.position);
-						return TableRow.map(buffer, offset, rowSize);
+						return TableRow.map(this, offset, rowFormat.rowSize);
 					}
 					
 					Entry<TableMap, Integer> tableMapBefore = TableMap.getBlockBefore(this, entryPointer);
@@ -141,15 +131,15 @@ public class ExperimentalTable {
 						byte entryBeforeType = mapBefore.entryTypes[entryBeforeIndex];
 						
 						if (entryBeforeType == TableMap.ENTRY_TYPE_FREE) {
-							if (mapBefore.entryLengths[entryBeforeIndex] >= rowSize) {
+							if (mapBefore.entryLengths[entryBeforeIndex] >= rowFormat.rowSize) {
 								
-								int offset = entryPointer - rowSize;
-								mapBefore.entryLengths[entryBeforeIndex] -= rowSize;
-								tableMap.entryPointers[i] -= rowSize;
-								tableMap.entryLengths[i] += rowSize;
+								int offset = entryPointer - rowFormat.rowSize;
+								mapBefore.entryLengths[entryBeforeIndex] -= rowFormat.rowSize;
+								tableMap.entryPointers[i] -= rowFormat.rowSize;
+								tableMap.entryLengths[i] += rowFormat.rowSize;
 								mapBefore.writeAt(buffer, mapBefore.position);
 								tableMap.writeAt(buffer, tableMap.position);
-								return TableRow.map(buffer, offset, rowSize);
+								return TableRow.map(this, offset, rowFormat.rowSize);
 							}
 						}
 					}
@@ -163,15 +153,15 @@ public class ExperimentalTable {
 						byte entryAfterType = mapAfter.entryTypes[entryAfterIndex];
 						
 						if (entryAfterType == TableMap.ENTRY_TYPE_FREE) {
-							if (mapAfter.entryLengths[entryAfterIndex] >= rowSize) {
+							if (mapAfter.entryLengths[entryAfterIndex] >= rowFormat.rowSize) {
 								
 								int offset = mapAfter.entryPointers[entryAfterIndex];
-								mapAfter.entryPointers[entryAfterIndex] += rowSize;
-								mapAfter.entryLengths[entryAfterIndex] -= rowSize;
-								tableMap.entryLengths[i] += rowSize;
+								mapAfter.entryPointers[entryAfterIndex] += rowFormat.rowSize;
+								mapAfter.entryLengths[entryAfterIndex] -= rowFormat.rowSize;
+								tableMap.entryLengths[i] += rowFormat.rowSize;
 								mapAfter.writeAt(buffer, mapAfter.position);
 								tableMap.writeAt(buffer, tableMap.position);
-								return TableRow.map(buffer, offset, rowSize);
+								return TableRow.map(this, offset, rowFormat.rowSize);
 							}
 						}
 					}
@@ -185,11 +175,11 @@ public class ExperimentalTable {
 				resize(offset + nextMap.length());
 				nextMap.writeAt(buffer, offset);
 				offset = buffer.limit();
-				resize(offset + rowSize);
+				resize(offset + rowFormat.rowSize);
 				tableMap.indexOfNextMap = nextMap.position;
 				tableMap.writeAt(buffer, tableMap.position);
-				TableMap.addEntry(this, TableMap.ENTRY_TYPE_ROWS, offset, rowSize);
-				return TableRow.map(buffer, offset, rowSize);
+				TableMap.addEntry(this, TableMap.ENTRY_TYPE_ROWS, offset, rowFormat.rowSize);
+				return TableRow.map(this, offset, rowFormat.rowSize);
 			}
 		}
 		
@@ -256,7 +246,7 @@ public class ExperimentalTable {
 						
 						if (rowOffset > entryPointer && rowOffset < entryPointer + entryLength) {
 							
-							tableMap.removeData(i, rowOffset, rowSize, this);
+							tableMap.removeData(i, rowOffset, rowFormat.rowSize, this);
 							return;
 						}
 					}
@@ -272,49 +262,6 @@ public class ExperimentalTable {
 		}
 	}
 	
-//	private TableRow getRowNumber(int index) {
-//		
-//		int count = 0;
-//		int tableMapPointer = 0;
-//		
-//		while (tableMapPointer < buffer.limit()) {
-//			
-//			TableMap tableMap = TableMap.read(buffer, tableMapPointer);
-//			
-//			for (int i = 0 ; i < tableMap.numberOfEntries ; i ++) {
-//				
-//				int entryType = tableMap.entryTypes[i];
-//				int entryPointer = tableMap.entryPointers[i];
-//				int entryLength = tableMap.entryLengths[i];
-//				
-//				if (entryType == TableMap.ENTRY_TYPE_ROWS) {
-//					if (entryPointer + entryLength <= buffer.limit()) {
-//						
-//						int numEntries = entryLength / rowSize;
-//						
-//						if (index > count && index < count + numEntries) {
-//							
-//							int more = index - count;
-//							int offset = entryPointer + more * rowSize;
-//							return TableRow.map(buffer, offset, rowSize);
-//						}
-//						
-//						count += numEntries;
-//					}
-//				}
-//			}
-//			
-//			if (tableMap.indexOfNextMap == 0) {
-//				
-//				break;
-//			}
-//			
-//			tableMapPointer = tableMap.indexOfNextMap;
-//		}
-//		
-//		return null;
-//	}
-	
 	public Stream<TableRow> stream() {
 		
 		return tableMapStream().flatMap(tableMap -> {
@@ -325,12 +272,12 @@ public class ExperimentalTable {
 					.filter(i -> tableMap.entryTypes[i] == TableMap.ENTRY_TYPE_ROWS)
 					.flatMap(i -> {
 						
-						Stream<Integer> entryStream = Stream.iterate(tableMap.entryPointers[i], j -> j + rowSize);
+						Stream<Integer> entryStream = Stream.iterate(tableMap.entryPointers[i], j -> j + rowFormat.rowSize);
 						
-						return entryStream.limit(tableMap.entryLengths[i] / rowSize)
+						return entryStream.limit(tableMap.entryLengths[i] / rowFormat.rowSize)
 								.map(j -> {
 							
-									return TableRow.map(buffer, j, rowSize);
+									return TableRow.map(this, j, rowFormat.rowSize);
 								});
 					});
 		});
@@ -355,7 +302,7 @@ public class ExperimentalTable {
 				if (entryType == TableMap.ENTRY_TYPE_ROWS) {
 					if (entryPointer + entryLength <= buffer.limit()) {
 						
-						count += entryLength / rowSize;
+						count += entryLength / rowFormat.rowSize;
 					}
 				}
 			}
@@ -393,19 +340,6 @@ public class ExperimentalTable {
 			e.printStackTrace();
 		}
 	}
-	
-//	private MappedByteBuffer map(int offset, int length) {
-//		
-//		try (RandomAccessFile randomAccessFile = new RandomAccessFile(tableFile.toFile(), "rw")) {
-//			
-//			return randomAccessFile.getChannel().map(MapMode.READ_WRITE, offset, length);
-//			
-//		} catch (IOException e) {
-//			e.printStackTrace();
-//		}
-//		
-//		return null;
-//	}
 
 	private void initDir(Path directory) {
 		
@@ -425,14 +359,7 @@ public class ExperimentalTable {
 
 	public String[] getColumnLabels() {
 		
-		ArrayList<String> result = new ArrayList<>();
-		
-		for (String key : rowFormat.keySet()) {
-			
-			result.add(key);
-		}
-		
-		return result.toArray(new String[0]);
+		return rowFormat.columnNames.toArray(new String[0]);
 	}
 
 	public void debugPrint() {
@@ -453,11 +380,11 @@ public class ExperimentalTable {
 						
 					} else if (tableMap.entryTypes[i] == TableMap.ENTRY_TYPE_ROWS) {
 						
-						Stream.iterate(tableMap.entryPointers[i], j -> j + rowSize)
-							.limit(tableMap.entryLengths[i] / rowSize)
+						Stream.iterate(tableMap.entryPointers[i], j -> j + rowFormat.rowSize)
+							.limit(tableMap.entryLengths[i] / rowFormat.rowSize)
 							.forEach(j -> {
 								
-								TableRow row = TableRow.map(buffer, j, rowSize);
+								TableRow row = TableRow.map(this, j, rowFormat.rowSize);
 								row.debugPrint();
 							});
 					}
@@ -503,6 +430,13 @@ public class ExperimentalTable {
 				}
 			}
 		});
+	}
+
+	public void printAllRows(TableFormat tableFormat) {
+		
+		TableFormatter.printTableStart(this, tableFormat);
+		stream().forEach(row -> TableFormatter.printTableRow(this, row, tableFormat));
+		TableFormatter.printTableEnd(this, tableFormat);
 	}
 
 }

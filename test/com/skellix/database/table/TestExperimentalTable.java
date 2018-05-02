@@ -37,16 +37,24 @@ class TestExperimentalTable {
 			}
 		}
 		
-		Map<String, Integer> tableFormat = new LinkedHashMap<>();
-		tableFormat.put("username", 16);
-		tableFormat.put("password", 32);
+		StringBuilder sb = new StringBuilder();
+		sb.append("{string username 16}");
+		sb.append("{string password 32}");
 		
-		ExperimentalTable table = new ExperimentalTable(directory, tableFormat);
+		RowFormat rowFormat = RowFormatter.parse(sb.toString());
+		
+		ExperimentalTable table = new ExperimentalTable(directory, rowFormat);
+		try {
+			table.deleteTable();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		table.initTable();
 		
 		System.out.println("limit: " + table.buffer.limit());
 		
-		Integer USERNAME = table.columnOffset.get("username");
-		Integer PASSWORD = table.columnOffset.get("password");
+		Integer username = rowFormat.columnIndexes.get("username");
+		Integer password = rowFormat.columnIndexes.get("password");
 		
 		// 0       in    0.015s
 		// 10      in    0.021s
@@ -56,11 +64,11 @@ class TestExperimentalTable {
 		// 100000  in   25.587s
 		// 1000000 in  264.326s
 		
-		for (int i = 0 ; i < 1000000 ; i ++) {
+		for (int i = 0 ; i < 100 ; i ++) {
 			
 			TableRow row = table.addRow();
-			row.setString(USERNAME, "test");
-			row.setString(PASSWORD, "testpassword");
+			row.columns.get(username).set("test");
+			row.columns.get(password).set("testpassword");
 		}
 		
 		System.out.println("limit: " + table.buffer.limit());
@@ -78,15 +86,11 @@ class TestExperimentalTable {
 		
 		long queryStart = System.currentTimeMillis();
 		
-		table.stream().forEach(row -> {
-			
-			System.out.println(row.getString(USERNAME));
-		});
+		table.printAllRows(TableFormat.FORMAT_CELLS);
 		
 		long queryTime = System.currentTimeMillis() - queryStart;
 		System.out.println("query time: " + queryTime + "ms");
 		
-//		System.out.println("count: " + table.stream().count());
 	}
 
 }
