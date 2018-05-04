@@ -36,8 +36,6 @@ public class ExperimentalTable {
 			
 			initTable();
 		}
-		
-		this.rowFormat = rowFormat;
 	}
 
 	public void deleteTable() throws IOException {

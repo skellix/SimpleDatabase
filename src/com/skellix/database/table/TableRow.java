@@ -200,4 +200,15 @@ public class TableRow {
 		return columns.stream().map(column -> column.get()).collect(Collectors.toList()).toArray();
 	}
 
+	public Object[] getValues() {
+		
+		Object[] values = new Object[columns.size()];
+		
+		for (int i = 0 ; i < columns.size() ; i ++) {
+			
+			values[i] = columns.get(i).get();
+		}
+		return values;
+	}
+
 }

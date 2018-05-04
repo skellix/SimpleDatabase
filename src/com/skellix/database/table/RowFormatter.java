@@ -5,8 +5,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.skellix.treeparser.TreeNode;
-import com.skellix.treeparser.TreeParser;
+import treeparser.TreeNode;
+import treeparser.TreeParser;
 
 /***
  * Using the {@link #parse(String)} function, a string representing the row format

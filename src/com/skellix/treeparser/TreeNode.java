@@ -14,7 +14,7 @@ import java.util.regex.Pattern;
  */
 public class TreeNode {
 
-	TreeNode parent = null;
+	public TreeNode parent = null;
 	public ByteBuffer source = null;
 	public int line = -1;
 	public int exitLine = -1;
@@ -126,6 +126,15 @@ public class TreeNode {
 		return children != null && !children.isEmpty();
 	}
 	
+	public int getIndex() {
+		
+		if (!hasParent() || !parent.hasChildren()) {
+			return -1;
+		}
+		
+		return parent.children.indexOf(this);
+	}
+	
 	public TreeNode getSiblingNode(int nodeIndex) {
 		
 		if (!hasParent()) {
@@ -152,6 +161,16 @@ public class TreeNode {
 
 	public TreeNode cloneWithoutLinks() {
 		return new TreeNode(source, start, enter, exit, end, line, exitLine);
+	}
+	
+	public void copyValuesFrom(TreeNode from) {
+		this.source = from.source;
+		this.start = from.start;
+		this.enter = from.enter;
+		this.exit = from.exit;
+		this.end = from.end;
+		this.line = from.line;
+		this.exitLine = from.exitLine;
 	}
 	
 	public boolean matchesPattern(String pattern) {
