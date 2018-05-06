@@ -1,5 +1,10 @@
 package com.skellix.database.table;
 
+import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,6 +44,33 @@ public class RowFormat {
 			columnOffsets.put(key, rowSize);
 			rowSize += columnSizes.get(key);
 		}
+	}
+
+	public void write(Path rowFormatPath) throws IOException {
+		
+		try (OutputStream out = Files.newOutputStream(rowFormatPath, StandardOpenOption.CREATE, StandardOpenOption.WRITE)) {
+			
+			out.write(toString().getBytes());
+		}
+	}
+	
+	@Override
+	public String toString() {
+		
+		StringBuilder sb = new StringBuilder();
+		
+		for (String key : columnNames) {
+			
+			sb.append("{");
+			sb.append(columnTypes.get(key).toString());
+			sb.append(" ");
+			sb.append(key);
+			sb.append(" ");
+			sb.append(String.format("%d", columnSizes.get(key)));
+			sb.append("}");
+		}
+		
+		return sb.toString();
 	}
 
 }
