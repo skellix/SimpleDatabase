@@ -9,6 +9,12 @@ public class IntegerNumberQueryNode extends NumberQueryNode {
 		copyValuesFrom(from);
 		Integer.parseInt(getLabel());
 	}
+	
+	@Override
+	public Object query() throws Exception {
+		
+		return Integer.parseInt(getLabel());
+	}
 
 	@Override
 	public String generateCode() {

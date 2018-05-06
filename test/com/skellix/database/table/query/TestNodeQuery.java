@@ -3,8 +3,10 @@ package com.skellix.database.table.query;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.IOException;
+import java.nio.MappedByteBuffer;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 
 import org.junit.jupiter.api.Test;
 
@@ -16,7 +18,7 @@ import com.skellix.database.table.TableFormat;
 import com.skellix.database.table.TableFormatter;
 import com.skellix.database.table.TableRow;
 
-class TestQueryExperimentalTable {
+class TestNodeQuery {
 
 	@Test
 	void test() {
@@ -47,31 +49,32 @@ class TestQueryExperimentalTable {
 		}
 		table.initTable();
 		
-		for (int i = 0 ; i < 1 ; i ++) {
-			
+		{
 			TableRow row = table.addRow();
 			row.columns.get(name).set("test");
-			row.columns.get(age).set((long) i);
+			row.columns.get(age).set(50L);
 		}
 		
-		StringBuilder queryString = new StringBuilder();
-		queryString.append("if age <= 50 return (name, age)");
-		
-		System.out.println("query string: " + queryString.toString());
+		QueryNode addRowQueryNode = null;
+		try {
+			String queryString = "table 'testData/experimental' addRow {'name' : 'test2', 'age' : 25}";
+			addRowQueryNode = QueryNodeParser.parse(queryString);
+		} catch (QueryParseException e1) {
+			e1.printStackTrace();
+			fail(e1.getMessage());
+		}
 		
 		try {
-			TableQuery query = QueryParser.parse(queryString.toString());
-			TableQueryResults result = query.queryTable(table);
+			System.out.println("Starting query");
+			Object result = addRowQueryNode.query();
+			System.out.println("Query complete");
 			
 			TableFormatter.printTableStart(table, TableFormat.FORMAT_CELLS);
-			
-			result.printResults(table, TableFormat.FORMAT_CELLS);
-			
+			table.stream().forEach(row -> TableFormatter.printTableRow(table, row, TableFormat.FORMAT_CELLS));
 			TableFormatter.printTableEnd(table, TableFormat.FORMAT_CELLS);
 			
-		} catch (QueryParseException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
-			fail("Unable to parse query");
 		}
 	}
 

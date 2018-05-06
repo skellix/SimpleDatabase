@@ -21,4 +21,11 @@ public class ReturnVariableQueryNode extends QueryNode {
 		return sb.toString();
 	}
 
+	@Override
+	public Object query() throws Exception {
+		
+		QueryNode child = (QueryNode) children.get(0);
+		return child.query();
+	}
+
 }

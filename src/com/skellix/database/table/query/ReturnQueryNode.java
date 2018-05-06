@@ -35,4 +35,11 @@ public class ReturnQueryNode extends QueryNode {
 		return generateCode();
 	}
 
+	@Override
+	public Object query() throws Exception {
+	
+		QueryNode child = (QueryNode) children.get(0);
+		return child.query();
+	}
+
 }

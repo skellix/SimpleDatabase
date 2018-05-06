@@ -166,6 +166,9 @@ public class TreeNode implements Serializable {
 	}
 	
 	public String getLabel() {
+		if (source == null) {
+			return null;
+		}
 		int length = (end - start) + 1;
 		if (start + length > source.buffer.limit()) {
 			return null;

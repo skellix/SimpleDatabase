@@ -40,4 +40,25 @@ public class IfQueryNode extends QueryNode {
 		return generateCode();
 	}
 
+	@Override
+	public Object query() throws Exception {
+		
+		QueryNode leftNode = (QueryNode) children.get(0);
+		QueryNode rightNode = (QueryNode) children.get(1);
+		
+		Object testResultObj = leftNode.query();
+		
+		if (testResultObj instanceof Boolean) {
+			
+			Boolean testResult = (Boolean) testResultObj;
+			
+			if (testResult) {
+				
+				return rightNode.query();
+			}
+		}
+		
+		return null;
+	}
+
 }

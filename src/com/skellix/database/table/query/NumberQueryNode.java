@@ -8,4 +8,10 @@ public class NumberQueryNode extends QueryNode {
 		return null;
 	}
 
+	@Override
+	public Object query() throws Exception {
+		
+		return null;
+	}
+
 }

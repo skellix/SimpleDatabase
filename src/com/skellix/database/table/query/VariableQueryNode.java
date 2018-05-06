@@ -23,4 +23,10 @@ public class VariableQueryNode extends QueryNode {
 		return getLabel();
 	}
 
+	@Override
+	public Object query() throws Exception {
+		
+		return null;
+	}
+
 }
