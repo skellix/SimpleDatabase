@@ -1,9 +1,13 @@
 package com.skellix.database.table;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import treeparser.TreeNode;
 import treeparser.TreeParser;
@@ -34,7 +38,7 @@ import treeparser.TreeParser;
  */
 public class RowFormatter {
 
-	public static RowFormat parse(String formatString) {
+	public static RowFormat parse(String formatString) throws RowFormatterException {
 		
 		TreeNode parsed = TreeParser.parse(formatString);
 		
@@ -46,16 +50,16 @@ public class RowFormatter {
 			
 			if (!parsedChild.hasChildren()) {
 				
-				System.err.printf("ERROR: expected a group at %d:%d\n"
+				String message = String.format("ERROR: expected a group at %d:%d\n"
 						, parsedChild.line, parsedChild.getStartColumn());
-				System.exit(-1);
+				throw new RowFormatterException(message);
 			}
 			
 			if (parsedChild.children.size() < 2 || parsedChild.children.size() > 3) {
 				
-				System.err.printf("ERROR: expected column in the format {type label} or {type label byte_size} at %d:%d\n"
+				String message = String.format("ERROR: expected column in the format {type label} or {type label byte_size} at %d:%d\n"
 						, parsedChild.line, parsedChild.getStartColumn());
-				System.exit(-1);
+				throw new RowFormatterException(message);
 			}
 			
 			TreeNode typeNode = parsedChild.children.get(0);
@@ -78,9 +82,9 @@ public class RowFormatter {
 					
 				} catch (NumberFormatException e) {
 					
-					System.err.printf("ERROR: invalid number '%s' for column byte_size at %d:%d\n"
+					String message = String.format("ERROR: invalid number '%s' for column byte_size at %d:%d\n"
 							, lengthString, parsedChild.line, parsedChild.getStartColumn());
-					System.exit(-1);
+					throw new RowFormatterException(message);
 				}
 			} else {
 				
@@ -88,10 +92,10 @@ public class RowFormatter {
 				case STRING:
 				case BYTE_ARRAY:
 				case OBJECT:
-					System.err.printf(
+					String message = String.format(
 							"ERROR: STRING, BYTE_ARRAY, and OBJECT types must specify a byte length in th format {type label byte_size} at %d:%d\n"
 							,parsedChild.line, parsedChild.getStartColumn());
-					System.exit(-1);
+					throw new RowFormatterException(message);
 				default:
 					columnSizes.put(name, type.defaultByteLength());
 				}
@@ -101,5 +105,11 @@ public class RowFormatter {
 		}
 		
 		return new RowFormat(columnNames, columnTypes, columnSizes);
+	}
+
+	public static RowFormat parse(Path formatPath) throws IOException,RowFormatterException {
+		
+		String formatString = Files.readAllLines(formatPath).stream().collect(Collectors.joining(" "));
+		return parse(formatString);
 	}
 }
