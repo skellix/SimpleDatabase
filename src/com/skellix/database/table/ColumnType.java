@@ -108,4 +108,58 @@ public enum ColumnType {
 		return 0;
 	}
 	
+	@Override
+	public String toString() {
+		
+		switch (this) {
+		case BOOLEAN: return "BOOLEAN";
+		case BYTE: return "BYTE";
+		case CHAR: return "CHAR";
+		case INT: return "INT";
+		case LONG: return "LONG";
+		case FLOAT: return "FLOAT";
+		case DOUBLE: return "DOUBLE";
+		case STRING: return "STRING";
+		case BYTE_ARRAY: return "BYTE_ARRAY";
+		case OBJECT: return "OBJECT";
+		}
+		return super.toString();
+	}
+
+	public Object cast(Object value) {
+		
+		if (value instanceof Number) {
+			
+			switch (this) {
+			case BYTE: return ((Number) value).byteValue();
+			case CHAR: return (char) ((Number) value).intValue();
+			case INT: return ((Number) value).intValue();
+			case LONG: return ((Number) value).longValue();
+			case FLOAT: return ((Number) value).floatValue();
+			case DOUBLE: return ((Number) value).doubleValue();
+			}
+			
+		} else if (value instanceof String) {
+		
+			switch (this) {
+			case BOOLEAN: return Boolean.parseBoolean((String) value);
+			case BYTE: return Byte.parseByte((String) value);
+			case CHAR: return ((String) value).charAt(0);
+			case INT: return Integer.parseInt((String) value);
+			case LONG: return Long.parseLong((String) value);
+			case FLOAT: return Float.parseFloat((String) value);
+			case DOUBLE: return Double.parseDouble((String) value);
+			case STRING: return value;
+			}
+			
+		} else if (value instanceof Boolean) {
+			
+			switch (this) {
+			case STRING: return value.toString();
+			}
+			
+		}
+		return null;
+	}
+	
 }
