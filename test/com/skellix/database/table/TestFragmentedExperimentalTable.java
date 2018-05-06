@@ -19,12 +19,17 @@ class TestFragmentedExperimentalTable {
 		sb.append("{string username 16}");
 		sb.append("{string password 32}");
 		
-		RowFormat rowFormat = RowFormatter.parse(sb.toString());
+		RowFormat rowFormat = null;
+		try {
+			rowFormat = RowFormatter.parse(sb.toString());
+		} catch (RowFormatterException e1) {
+			e1.printStackTrace();
+		}
 		
 		Integer username = rowFormat.columnIndexes.get("username");
 		Integer password = rowFormat.columnIndexes.get("password");
 		
-		ExperimentalTable table = new ExperimentalTable(directory, rowFormat);
+		ExperimentalTable table = ExperimentalTable.getOrCreate(directory, rowFormat);
 		try {
 			table.deleteTable();
 			table.initTable();

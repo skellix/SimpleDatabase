@@ -25,9 +25,14 @@ class TestTypedRows {
 		sb.append("{byte_array i 16}");
 		sb.append("{object j 64}");
 		
-		RowFormat rowFormat = RowFormatter.parse(sb.toString());
+		RowFormat rowFormat = null;
+		try {
+			rowFormat = RowFormatter.parse(sb.toString());
+		} catch (RowFormatterException e1) {
+			e1.printStackTrace();
+		}
 		
-		ExperimentalTable table = new ExperimentalTable(directory, rowFormat);
+		ExperimentalTable table = ExperimentalTable.getOrCreate(directory, rowFormat);
 		try {
 			table.deleteTable();
 		} catch (IOException e) {

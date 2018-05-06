@@ -1,11 +1,15 @@
 package com.skellix.database.table;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel.MapMode;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
@@ -16,26 +20,105 @@ public class ExperimentalTable {
 	public MappedByteBuffer buffer;
 	public RowFormat rowFormat;
 	
-	public ExperimentalTable(Path directory, RowFormat rowFormat) {
+	public static Map<String, ExperimentalTable> openTables = new LinkedHashMap<>();
+	
+	private ExperimentalTable(Path directory, RowFormat rowFormat) {
 		
-		this.rowFormat = rowFormat;
-		
-		initDir(directory);
-		
-		tableFile = directory.resolve("table.bin");
-		
-		try (RandomAccessFile randomAccessFile = new RandomAccessFile(tableFile.toFile(), "rw")) {
+		synchronized (openTables) {
 			
-			buffer = randomAccessFile.getChannel().map(MapMode.READ_WRITE, 0, Files.size(tableFile));
+			this.rowFormat = rowFormat;
+			Path rowFormatPath = getFormatPath(directory);
+			
+			try {
+				rowFormat.write(rowFormatPath);
+			} catch (IOException e1) {
+				e1.printStackTrace();
+			}
+			
+			initDir(directory);
+			
+			tableFile = getRowDataPath(directory);
+			
+			try (RandomAccessFile randomAccessFile = new RandomAccessFile(tableFile.toFile(), "rw")) {
+				
+				buffer = randomAccessFile.getChannel().map(MapMode.READ_WRITE, 0, Files.size(tableFile));
+				
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			
+			if (buffer.limit() == 0) {
+				
+				initTable();
+			}
+			
+			openTables.put(uid(), this);
+		}
+	}
+	
+	public static ExperimentalTable getOrCreate(Path directory, RowFormat rowFormat) {
+		
+		String uid = uid(directory);
+		
+		synchronized (openTables) {
+			
+			if (openTables.containsKey(uid)) {
+				
+				return openTables.get(uid);
+			}
+			
+			return new ExperimentalTable(directory, rowFormat);
+		}
+	}
+	
+	public static ExperimentalTable getById(String tableIdString) throws FileNotFoundException,RowFormatterException {
+		
+		Path directory = Paths.get(tableIdString);
+		
+		if (!Files.exists(directory)) {
+			
+			throw new FileNotFoundException("No database found at the path " + directory.toAbsolutePath().toString());
+		}
+		
+		String uid = uid(directory);
+		
+		synchronized (openTables) {
+			
+			if (openTables.containsKey(uid)) {
+				
+				return openTables.get(uid);
+			}
+		}
+		
+		Path format = getFormatPath(directory);
+		
+		if (!Files.exists(format)) {
+			
+			throw new FileNotFoundException("No database format found at the path " + format.toAbsolutePath().toString());
+		}
+		
+		RowFormat rowFormat = null;
+		try {
+			
+			rowFormat = RowFormatter.parse(format);
 			
 		} catch (IOException e) {
-			e.printStackTrace();
+			throw new RowFormatterException(e.getMessage());
+		} catch (RowFormatterException e) {
+			throw e;
 		}
 		
-		if (buffer.limit() == 0) {
-			
-			initTable();
-		}
+		return new ExperimentalTable(directory, rowFormat);
+	}
+	
+	public static Path getRowDataPath(Path directory) {
+		
+		return directory.resolve("table.bin");
+	}
+	
+	public static Path getFormatPath(Path directory) {
+		
+		return directory.resolve("format");
 	}
 
 	public void deleteTable() throws IOException {
@@ -187,6 +270,11 @@ public class ExperimentalTable {
 	public String uid() {
 		
 		return tableFile.toAbsolutePath().toString();
+	}
+	
+	public static String uid(Path directory) {
+		
+		return getRowDataPath(directory).toAbsolutePath().toString();
 	}
 	
 	private int numberOfTableMaps() {
