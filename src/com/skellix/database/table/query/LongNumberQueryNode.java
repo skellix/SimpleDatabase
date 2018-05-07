@@ -1,5 +1,7 @@
 package com.skellix.database.table.query;
 
+import com.skellix.database.session.Session;
+
 public class LongNumberQueryNode extends NumberQueryNode {
 	
 	private long value;
@@ -11,7 +13,7 @@ public class LongNumberQueryNode extends NumberQueryNode {
 	}
 
 	@Override
-	public Object query() throws Exception {
+	public Object query(Session session) throws Exception {
 		
 		return value;
 	}
