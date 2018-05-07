@@ -12,15 +12,20 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Stream;
 
 public class ExperimentalTable {
+	
+	public static Map<String, ExperimentalTable> openTables = new LinkedHashMap<>();
 	
 	private Path tableFile;
 	public MappedByteBuffer buffer;
 	public RowFormat rowFormat;
 	
-	public static Map<String, ExperimentalTable> openTables = new LinkedHashMap<>();
+	private ReadWriteLock locker = new ReentrantReadWriteLock(true);
 	
 	private ExperimentalTable(Path directory, RowFormat rowFormat) {
 		
@@ -126,6 +131,16 @@ public class ExperimentalTable {
 		System.out.println("deleting: " + tableFile.toAbsolutePath().toString());
 		Files.delete(tableFile);
 		System.out.println("deleted: " + tableFile.toAbsolutePath().toString());
+	}
+	
+	public Lock getReadLock() {
+		
+		return locker.readLock();
+	}
+	
+	public Lock getWriteLock() {
+		
+		return locker.writeLock();
 	}
 	
 	public TableRow addRow() {
