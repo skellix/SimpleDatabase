@@ -1,5 +1,7 @@
 package com.skellix.database.table.query;
 
+import com.skellix.database.session.Session;
+
 import treeparser.TreeNode;
 
 public class VariableQueryNode extends QueryNode {
@@ -24,7 +26,7 @@ public class VariableQueryNode extends QueryNode {
 	}
 
 	@Override
-	public Object query() throws Exception {
+	public Object query(Session session) throws Exception {
 		
 		return null;
 	}

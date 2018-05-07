@@ -1,5 +1,7 @@
 package com.skellix.database.table.query;
 
+import com.skellix.database.session.Session;
+
 import treeparser.TreeNode;
 
 public class ReturnQueryNode extends QueryNode {
@@ -36,10 +38,10 @@ public class ReturnQueryNode extends QueryNode {
 	}
 
 	@Override
-	public Object query() throws Exception {
+	public Object query(Session session) throws Exception {
 	
 		QueryNode child = (QueryNode) children.get(0);
-		return child.query();
+		return child.query(session);
 	}
 
 }

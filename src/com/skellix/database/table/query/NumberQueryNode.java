@@ -1,5 +1,7 @@
 package com.skellix.database.table.query;
 
+import com.skellix.database.session.Session;
+
 public class NumberQueryNode extends QueryNode {
 
 	@Override
@@ -9,7 +11,7 @@ public class NumberQueryNode extends QueryNode {
 	}
 
 	@Override
-	public Object query() throws Exception {
+	public Object query(Session session) throws Exception {
 		
 		return null;
 	}

@@ -3,9 +3,31 @@ package com.skellix.database.table.query;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.skellix.database.session.Session;
+
 import treeparser.TreeNode;
 
 public class GroupQueryNode extends QueryNode {
+	
+	public static GroupQueryNode parse(TreeNode replaceNode) throws QueryParseException {
+		
+		int index = replaceNode.getIndex();
+		
+		GroupQueryNode queryNode = new GroupQueryNode(replaceNode);
+		replaceNode.parent.children.remove(index);
+		replaceNode.parent.children.add(index, queryNode);
+		queryNode.parent = replaceNode.parent;
+		
+		for (TreeNode child : replaceNode.children) {
+			
+			if (!child.getLabel().equals(",")) {
+				
+				queryNode.add(child);
+			}
+		}
+		
+		return queryNode;
+	}
 
 	public GroupQueryNode(TreeNode from) {
 		
@@ -45,7 +67,7 @@ public class GroupQueryNode extends QueryNode {
 	}
 
 	@Override
-	public Object query() throws Exception {
+	public Object query(Session session) throws Exception {
 		
 		List<QueryNode> list = new ArrayList<>();
 		

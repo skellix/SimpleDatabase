@@ -3,10 +3,9 @@ package com.skellix.database.table.query;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.IOException;
-import java.nio.MappedByteBuffer;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
 
@@ -19,7 +18,7 @@ import com.skellix.database.table.TableFormat;
 import com.skellix.database.table.TableFormatter;
 import com.skellix.database.table.TableRow;
 
-class TestNodeQuery {
+class TestNodeGetQuery {
 
 	@Test
 	void test() {
@@ -58,7 +57,7 @@ class TestNodeQuery {
 		
 		QueryNode addRowQueryNode = null;
 		try {
-			String queryString = "table 'testData/experimental' addRow {'name' : 'test2', 'age' : 25}";
+			String queryString = "table 'testData/experimental' getRows";
 			addRowQueryNode = QueryNodeParser.parse(queryString);
 		} catch (QueryParseException e1) {
 			e1.printStackTrace();
@@ -68,11 +67,16 @@ class TestNodeQuery {
 		try (Session session = Session.createNewSession(true)) {
 			System.out.println("Starting query");
 			Object result = session.query(addRowQueryNode);
-			System.out.println("Query complete");
 			
-			TableFormatter.printTableStart(table, TableFormat.FORMAT_CELLS);
-			table.stream().forEach(row -> TableFormatter.printTableRow(table, row, TableFormat.FORMAT_CELLS));
-			TableFormatter.printTableEnd(table, TableFormat.FORMAT_CELLS);
+			if (result instanceof Stream) {
+				Stream<TableRow> stream = (Stream<TableRow>) result;
+				
+				TableFormatter.printTableStart(table, TableFormat.FORMAT_CELLS);
+				stream.forEach(row -> TableFormatter.printTableRow(table, row, TableFormat.FORMAT_CELLS));
+				TableFormatter.printTableEnd(table, TableFormat.FORMAT_CELLS);
+			}
+			
+			System.out.println("Query complete");
 			
 		} catch (Exception e) {
 			e.printStackTrace();

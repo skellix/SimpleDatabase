@@ -2,7 +2,10 @@ package com.skellix.database.table.query;
 
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.concurrent.locks.Lock;
 
+import com.skellix.database.session.IllegalWriteException;
+import com.skellix.database.session.Session;
 import com.skellix.database.table.ExperimentalTable;
 import com.skellix.database.table.RowFormat;
 import com.skellix.database.table.TableRow;
@@ -59,34 +62,55 @@ public class AddRowQueryNode extends QueryNode {
 	}
 	
 	@Override
-	public Object query() throws Exception {
+	public Object query(Session session) throws Exception {
 		
-		Object mappings = rowQuery.query();
+		if (!session.hasWritePermission()) {
+			
+			throw new IllegalWriteException("Tried to write data without write access");
+		}
+		
+		Object mappings = rowQuery.query(session);
 		
 		if (mappings instanceof List) {
 			
 			List<EntryQueryNode> rowMappings = (List<EntryQueryNode>) mappings;
-			Object tableQueryResult = destQuery.query();
+			Object tableQueryResult = destQuery.query(session);
 			
 			if (tableQueryResult instanceof ExperimentalTable) {
 				
 				ExperimentalTable table = (ExperimentalTable) tableQueryResult;
 				RowFormat rowFormat = table.rowFormat;
 				
-				TableRow row = table.addRow();
+				Lock lock = table.getWriteLock();
+				session.addLock(lock);
 				
-				for (EntryQueryNode entryNode : rowMappings) {
+				try {
 					
-					Object entryObj = entryNode.query();
+					lock.lock();
+				
+					TableRow row = table.addRow();
 					
-					if (entryObj instanceof Entry) {
+					for (EntryQueryNode entryNode : rowMappings) {
 						
-						Entry<StringQueryNode, QueryNode> entry = (Entry<StringQueryNode, QueryNode>) entryObj;
-						String key = (String) entry.getKey().query();
-						Object value = entry.getValue().query();
-						Object casted = rowFormat.columnTypes.get(key).cast(value);
-						row.columns.get(rowFormat.columnIndexes.get(key)).set(casted);
+						Object entryObj = entryNode.query(session);
+						
+						if (entryObj instanceof Entry) {
+							
+							Entry<StringQueryNode, QueryNode> entry = (Entry<StringQueryNode, QueryNode>) entryObj;
+							String key = (String) entry.getKey().query(session);
+							Object value = entry.getValue().query(session);
+							Object casted = rowFormat.columnTypes.get(key).cast(value);
+							row.columns.get(rowFormat.columnIndexes.get(key)).set(casted);
+						}
 					}
+				
+				} catch (Exception e) {
+					
+					throw e;
+					
+				} finally {
+					
+					lock.unlock();
 				}
 			}
 		}

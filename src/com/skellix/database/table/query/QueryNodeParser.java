@@ -2,7 +2,9 @@ package com.skellix.database.table.query;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Stream;
 
 import treeparser.TreeNode;
 import treeparser.TreeParser;
@@ -35,58 +37,14 @@ public class QueryNodeParser {
 	
 	private static QueryParserRule parseFloatingPointNumbersRule = (tree) -> {
 		
-		List<TreeNode> list = descendantsOrSelfMatch(tree, "^(?:\\-|\\+|)\\d+\\.\\d+$");
-		
-		if (list != null) {
-			
-			for (TreeNode match : list) {
-				
-				int index = match.getIndex();
-				String label = match.getLabel();
-				
-				try {
-				
-					QueryNode queryNode = new DoubleNumberQueryNode(match);
-					match.parent.children.remove(index);
-					match.parent.children.add(index, queryNode);
-					
-				} catch (NumberFormatException e) {
-					
-					String errorString = String.format("ERROR: unable to parse number '%s' at %d, %d"
-							, label, match.line, match.getStartColumn());
-					
-					throw new QueryParseException(errorString);
-				}
-			}
-		}
+		forAllDescendantsOrSelfThatMatch(tree, "^(?:\\-|\\+|)\\d+\\.\\d+$",
+				match -> DoubleNumberQueryNode.parse(match));
 	};
 	
 	private static QueryParserRule parseIntegerNumbersRule = (tree) -> {
 		
-		List<TreeNode> list = descendantsOrSelfMatch(tree, "^(?:\\-|\\+|)\\d+$");
-		
-		if (list != null) {
-			
-			for (TreeNode match : list) {
-				
-				int index = match.parent.children.indexOf(match);
-				String label = match.getLabel();
-				
-				try {
-				
-					QueryNode queryNode = new IntegerNumberQueryNode(match);
-					match.parent.children.remove(index);
-					match.parent.children.add(index, queryNode);
-					
-				} catch (NumberFormatException e) {
-					
-					String errorString = String.format("ERROR: unable to parse number '%s' at %d, %d"
-							, label, match.line, match.getStartColumn());
-					
-					throw new QueryParseException(errorString);
-				}
-			}
-		}
+		forAllDescendantsOrSelfThatMatch(tree, "^(?:\\-|\\+|)\\d+$",
+				match -> IntegerNumberQueryNode.parse(match));
 	};
 	
 	private static QueryParserRule parseNumbersRule = (tree) -> {
@@ -97,24 +55,8 @@ public class QueryNodeParser {
 	
 	private static QueryParserRule parseStringsRule = (tree) -> {
 		
-		List<TreeNode> list = descendantsOrSelfMatch(tree, "^(['\"]).+\\1$");
-		
-		if (list != null) {
-			
-			for (TreeNode match : list) {
-				
-				int index = match.parent.children.indexOf(match);
-				String label = match.getLabel();
-				
-				String withoutQuotes = label.substring(1, label.length() - 1);
-				
-				StringQueryNode queryNode = new StringQueryNode().ofString(withoutQuotes);
-				queryNode.parent = match.parent;
-				
-				match.parent.children.remove(index);
-				match.parent.children.add(index, queryNode);
-			}
-		}
+		forAllDescendantsOrSelfThatMatch(tree, "^(['\"]).+\\1$",
+				match -> StringQueryNode.parse(match));
 	};
 	
 	private static QueryParserRule parseSingleTokensRule = (tree) -> {
@@ -125,15 +67,8 @@ public class QueryNodeParser {
 	
 	private static QueryParserRule parseEntriesRule = (tree) -> {
 		
-		List<TreeNode> list = descendantsOrSelfMatch(tree, "^:$");
-		
-		if (list != null) {
-			
-			for (TreeNode match : list) {
-				
-				EntryQueryNode.parse(match);
-			}
-		}
+		forAllDescendantsOrSelfThatMatch(tree, "^:$",
+				match -> EntryQueryNode.parse(match));
 	};
 	
 	private static QueryParserRule parseSimpleLeftRightTokensRule = (tree) -> {
@@ -143,34 +78,8 @@ public class QueryNodeParser {
 	
 	private static QueryParserRule parseTableTokensRule = (tree) -> {
 		
-		List<TreeNode> list = descendantsOrSelfMatch(tree, "^table$");
-		
-		if (list != null) {
-			
-			for (TreeNode match : list) {
-				
-				int index = match.parent.children.indexOf(match);
-				String label = match.getLabel();
-				
-				TreeNode nextNode = match.getNextSibling();
-				
-				if (nextNode == null || !(nextNode instanceof StringQueryNode)) {
-					
-					String errorString = String.format("ERROR: expected string after '%s' in %d, %d"
-							, match.getLabel(), match.line, match.getStartColumn());
-					
-					throw new QueryParseException(errorString);
-				}
-				
-				TableQueryNode queryNode = new TableQueryNode().getTable((QueryNode) nextNode);
-				queryNode.parent = match.parent;
-				
-				match.parent.children.remove(index);
-				match.parent.children.add(index, queryNode);
-				
-				nextNode.parent.children.remove(nextNode);
-			}
-		}
+		forAllDescendantsOrSelfThatMatch(tree, "^table$",
+				match -> TableQueryNode.parse(match));
 	};
 	
 	private static QueryParserRule parseSimpleRightTokensRule = (tree) -> {
@@ -188,20 +97,7 @@ public class QueryNodeParser {
 				
 				if (match.getEnterLabel().equals("(")) {
 					
-					int index = match.getIndex();
-					
-					QueryNode queryNode = new GroupQueryNode(match);
-					match.parent.children.remove(index);
-					match.parent.children.add(index, queryNode);
-					queryNode.parent = match.parent;
-					
-					for (TreeNode child : match.children) {
-						
-						if (!child.getLabel().equals(",")) {
-							
-							queryNode.add(child);
-						}
-					}
+					GroupQueryNode.parse(match);
 				}
 			}
 		}
@@ -217,35 +113,7 @@ public class QueryNodeParser {
 				
 				if (match.getEnterLabel().equals("{")) {
 					
-					List<EntryQueryNode> map = new ArrayList<>();
-					
-					for (int i = 0 ; i < match.children.size() ; i ++) {
-						
-						TreeNode child = match.children.get(i);
-						
-						if (child instanceof EntryQueryNode) {
-							
-							EntryQueryNode entry = (EntryQueryNode) child;
-							map.add(entry);
-							
-						} else {
-							
-							if (child.hasChildren() || !child.getLabel().equals(",")) {
-								
-								String errorString = String.format("ERROR: found invalid token '%s' in map at %d, %d"
-										, child.getLabel(), match.line, match.getStartColumn());
-								
-								throw new QueryParseException(errorString);
-							}
-						}
-					}
-					
-					MapQueryNode queryNode = new MapQueryNode().ofMap(map);
-					queryNode.parent = match.parent;
-					
-					int index = match.getIndex();
-					match.parent.children.remove(match);
-					match.parent.children.add(queryNode);
+					MapQueryNode.parse(match);
 				}
 			}
 		}
@@ -253,21 +121,21 @@ public class QueryNodeParser {
 	
 	private static QueryParserRule parseAddRowRule = (tree) -> {
 		
-		List<TreeNode> list = descendantsOrSelfMatch(tree, "^addRow$");
+		forAllDescendantsOrSelfThatMatch(tree, "^addRow$",
+				match -> AddRowQueryNode.parse(match));
+	};
+	
+	private static QueryParserRule parseGetRowsRule = (tree) -> {
 		
-		if (list != null) {
-			
-			for (TreeNode match : list) {
-				
-				AddRowQueryNode.parse(match);
-			}
-		}
+		forAllDescendantsOrSelfThatMatch(tree, "^getRows$",
+				match -> GetRowsQueryNode.parse(match));
 	};
 	
 	private static QueryParserRule parseComplexTokensRule = (tree) -> {
 		
 		parseMapRule.parse(tree);
 		parseAddRowRule.parse(tree);
+		parseGetRowsRule.parse(tree);
 	};
 	
 	private static List<TreeNode> descendantsOrSelfThatHaveChildren(TreeNode treeNode) {
@@ -343,7 +211,68 @@ public class QueryNodeParser {
 			}
 		}
 		
-		return null;
+		return Arrays.asList();
+	}
+	
+	public static void forAllDescendantsOrSelfThatMatch(TreeNode treeNode, String regex, QueryParserRule rule) throws QueryParseException {
+		
+		List<TreeNode> results = new ArrayList<TreeNode>();
+		
+		if (treeNode.hasChildren()) {
+			
+			for (TreeNode child : treeNode.children) {
+				
+				List<TreeNode> childMatches = descendantsOrSelfMatch(child, regex);
+				
+				if (childMatches != null) {
+				
+					results.addAll(childMatches);
+				}
+			}
+			
+		} else {
+			
+			String label = treeNode.getLabel();
+			
+			if (label != null && label.matches(regex)) {
+				
+				results.add(treeNode);
+			}
+		}
+		
+		for (TreeNode result : results) {
+			
+			rule.parse(result);
+		}
+	}
+	
+	public static void forAllDescendantsOrSelfThatMatchStream(TreeNode treeNode, String regex, QueryParserRule rule) throws QueryParseException {
+		
+		List<TreeNode> results = new ArrayList<TreeNode>();
+		
+		if (treeNode.hasChildren()) {
+			
+			forEach(treeNode.children.stream(),
+					child -> forAllDescendantsOrSelfThatMatchStream(child, regex, rule));
+			
+		} else {
+			
+			String label = treeNode.getLabel();
+			
+			if (label != null && label.matches(regex)) {
+				
+				rule.parse(treeNode);
+			}
+		}
+	}
+	
+	public static void forEach(Stream<TreeNode> stream, QueryParserRule rule) throws QueryParseException {
+		
+		for (Iterator<TreeNode> it = stream.iterator() ; it.hasNext() ;) {
+			
+			TreeNode node = it.next();
+			rule.parse(node);
+		}
 	}
 
 }

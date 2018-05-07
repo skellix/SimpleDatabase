@@ -2,6 +2,8 @@ package com.skellix.database.table.query;
 
 import java.util.AbstractMap.SimpleEntry;
 
+import com.skellix.database.session.Session;
+
 import treeparser.TreeNode;
 
 public class EntryQueryNode extends QueryNode {
@@ -57,7 +59,7 @@ public class EntryQueryNode extends QueryNode {
 	}
 
 	@Override
-	public Object query() throws Exception {
+	public Object query(Session session) throws Exception {
 		
 		return new SimpleEntry<StringQueryNode, QueryNode>(key, value);
 	}
