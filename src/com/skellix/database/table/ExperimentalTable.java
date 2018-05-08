@@ -116,6 +116,11 @@ public class ExperimentalTable {
 		return new ExperimentalTable(directory, rowFormat);
 	}
 	
+	public String getName() {
+		
+		return tableFile.getFileName().toString();
+	}
+	
 	public static Path getRowDataPath(Path directory) {
 		
 		return directory.resolve("table.bin");
