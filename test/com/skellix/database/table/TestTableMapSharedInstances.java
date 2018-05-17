@@ -10,6 +10,8 @@ import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 
+import com.skellix.database.session.Session;
+
 class TestTableMapSharedInstances {
 
 	@Test
@@ -39,11 +41,16 @@ class TestTableMapSharedInstances {
 			e.printStackTrace();
 		}
 		
-		for (int i = 0 ; i < 3 ; i ++) {
+		try (Session session = Session.createNewSession(true)) {
 			
-			TableRow row = table.addRow();
-			row.columns.get(username).set("test");
-			row.columns.get(password).set("testpassword");
+			for (int i = 0 ; i < 3 ; i ++) {
+				
+				TableRow row = table.addRow(session);
+				row.columns.get(username).set("test");
+				row.columns.get(password).set("testpassword");
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 		
 		TableMap tableMap1 = TableMap.read(table, 0);

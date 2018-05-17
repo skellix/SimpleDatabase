@@ -1,6 +1,5 @@
 package com.skellix.database.table.query;
 
-import java.util.AbstractMap.SimpleEntry;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map.Entry;
@@ -9,12 +8,9 @@ import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import com.skellix.database.table.ColumnType;
 import com.skellix.database.table.ExperimentalTable;
 import com.skellix.database.table.RowFormat;
 import com.skellix.database.table.TableFormat;
-
-import jdk.nashorn.api.scripting.ScriptObjectMirror;
 
 @SuppressWarnings("restriction")
 public class TableQueryResults {
@@ -34,38 +30,38 @@ public class TableQueryResults {
 		
 		return results.map(result -> {
 			
-			if (result instanceof ScriptObjectMirror) {
-				
-				ScriptObjectMirror sciptObject = (ScriptObjectMirror) result;
-				if (sciptObject.isArray()) {
-					
-					return columnLabels.stream().map(key -> {
-						
-						Integer byteSize = rowFormat.columnSizes.get(key);
-						ColumnType columnType = rowFormat.columnTypes.get(key);
-						String formatString = columnType.formatString(byteSize);
-						
-						return sciptObject.entrySet().stream()
-							.map(entry -> {
-								
-								Object o = entry.getValue();
-								
-								if (o instanceof ScriptObjectMirror) {
-									
-									ScriptObjectMirror child = (ScriptObjectMirror) o;
-									Object value = child.get(key);
-									return value;
-								}
-								return null;
-								
-							})
-							.filter(value -> value != null)
-							.map(value -> new SimpleEntry<>(formatString, value))
-							.findFirst().orElse(null);
-						
-					}).collect(Collectors.toList());
-				}
-			}
+//			if (result instanceof ScriptObjectMirror) {
+//				
+//				ScriptObjectMirror sciptObject = (ScriptObjectMirror) result;
+//				if (sciptObject.isArray()) {
+//					
+//					return columnLabels.stream().map(key -> {
+//						
+//						Integer byteSize = rowFormat.columnSizes.get(key);
+//						ColumnType columnType = rowFormat.columnTypes.get(key);
+//						String formatString = columnType.formatString(byteSize);
+//						
+//						return sciptObject.entrySet().stream()
+//							.map(entry -> {
+//								
+//								Object o = entry.getValue();
+//								
+//								if (o instanceof ScriptObjectMirror) {
+//									
+//									ScriptObjectMirror child = (ScriptObjectMirror) o;
+//									Object value = child.get(key);
+//									return value;
+//								}
+//								return null;
+//								
+//							})
+//							.filter(value -> value != null)
+//							.map(value -> new SimpleEntry<>(formatString, value))
+//							.findFirst().orElse(null);
+//						
+//					}).collect(Collectors.toList());
+//				}
+//			}
 			
 			return Arrays.asList();
 		});

@@ -1,21 +1,50 @@
 package com.skellix.database.table.query;
 
+import java.nio.MappedByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import com.skellix.database.table.query.exception.QueryParseException;
+import com.skellix.database.table.query.node.AddRowQueryNode;
+import com.skellix.database.table.query.node.AliasTableQueryNode;
+import com.skellix.database.table.query.node.AndQueryNode;
+import com.skellix.database.table.query.node.DoubleNumberQueryNode;
+import com.skellix.database.table.query.node.EntryQueryNode;
+import com.skellix.database.table.query.node.EqualsQueryNode;
+import com.skellix.database.table.query.node.GreaterThanQueryNode;
+import com.skellix.database.table.query.node.BlockQueryNode;
+import com.skellix.database.table.query.node.IntegerNumberQueryNode;
+import com.skellix.database.table.query.node.JoinQueryNode;
+import com.skellix.database.table.query.node.LessThanOrEqualsQueryNode;
+import com.skellix.database.table.query.node.LessThanQueryNode;
+import com.skellix.database.table.query.node.LimitQueryNode;
+import com.skellix.database.table.query.node.ListQueryNode;
+import com.skellix.database.table.query.node.MapQueryNode;
+import com.skellix.database.table.query.node.NextQueryNodes;
+import com.skellix.database.table.query.node.NotEqualsQueryNode;
+import com.skellix.database.table.query.node.NotQueryNode;
+import com.skellix.database.table.query.node.OrQueryNode;
+import com.skellix.database.table.query.node.PreviousQueryNodes;
+import com.skellix.database.table.query.node.QueryNode;
+import com.skellix.database.table.query.node.SelectQueryNode;
+import com.skellix.database.table.query.node.StringQueryNode;
+import com.skellix.database.table.query.node.TableQueryNode;
+import com.skellix.database.table.query.node.VariablePathQueryNode;
+import com.skellix.database.table.query.node.WhereQueryNode;
 
 import treeparser.TreeNode;
 import treeparser.TreeParser;
+import treeparser.io.IOSource;
 
 public class QueryNodeParser {
 	
 	public static QueryNode parse(String source) throws QueryParseException {
 		
-		TreeNode tree = TreeParser.parse(source);
-		
-		parseTree(tree);
+		TreeNode tree = parseTree(source);
 		
 		TreeNode firstChild = tree.getFirstChild();
 		
@@ -25,61 +54,171 @@ public class QueryNodeParser {
 		}
 		return null;
 	}
-
-	private static void parseTree(TreeNode tree) throws QueryParseException {
+	
+	public static TreeNode parseTree(String source) throws QueryParseException {
 		
-		parseSingleTokensRule.parse(tree);
-		parseGroupRule.parse(tree);
-		parseSimpleRightTokensRule.parse(tree);
-		parseSimpleLeftRightTokensRule.parse(tree);
-		parseComplexTokensRule.parse(tree);
+		TreeNode tree = TreeParser.parse(source);
+		
+		parseTree(tree);
+		
+		return tree;
 	}
 	
-	private static QueryParserRule parseFloatingPointNumbersRule = (tree) -> {
+	private static void parseTree(TreeNode tree) throws QueryParseException {
 		
-		forAllDescendantsOrSelfThatMatch(tree, "^(?:\\-|\\+|)\\d+\\.\\d+$",
-				match -> DoubleNumberQueryNode.parse(match));
+		parseBlockRule.parse(tree);
+	}
+	
+	private static QueryParserRule parseFloatingPointNumbersAndVariablesRule = (tree) -> {
+		
+		forAllDescendantsOrSelfThatMatch(tree, "^\\.$",
+				match -> {
+					
+					TreeNode previousNode = PreviousQueryNodes.getTypes(match, TreeNode.class).get(0);
+					TreeNode nextNode = NextQueryNodes.getTypes(match, TreeNode.class).get(0);
+					
+					String previousString = previousNode.getLabel();
+					String nextString = nextNode.getLabel();
+					
+					if (previousString.matches("^(?:\\-|\\+|)\\d+$") && nextString.matches("^\\d+$")) {
+					
+						try {
+							
+							String str = previousString + "." + nextString;
+							IOSource source = new IOSource(MappedByteBuffer.wrap(str.getBytes()));
+							TreeNode node = new TreeNode(source, 0, (int) source.buffer.limit() - 1, 0);
+							
+							new DoubleNumberQueryNode().parse(node);
+							
+						} catch (NumberFormatException e) {
+							
+							String errorString = String.format("ERROR: unable to parse number '%s' at %d, %d"
+									, match.getLabel(), match.line, match.getStartColumn());
+							
+							throw new QueryParseException(errorString);
+						}
+					} else {
+						
+						VariablePathQueryNode variablePathQueryNode = new VariablePathQueryNode();
+						variablePathQueryNode.copyValuesFrom(match);
+						match.replaceWith(variablePathQueryNode);
+						variablePathQueryNode.pathOf(previousNode, nextNode);
+					}
+					
+					previousNode.removeFromParent();
+					nextNode.removeFromParent();
+				});
 	};
 	
 	private static QueryParserRule parseIntegerNumbersRule = (tree) -> {
 		
-		forAllDescendantsOrSelfThatMatch(tree, "^(?:\\-|\\+|)\\d+$",
-				match -> IntegerNumberQueryNode.parse(match));
+		forChildrenThatMatch(tree, "^(?:\\-|\\+|)\\d+$",
+				match -> new IntegerNumberQueryNode().parse(match));
 	};
 	
-	private static QueryParserRule parseNumbersRule = (tree) -> {
+	private static QueryParserRule parseNumbersAndVariablesRule = (tree) -> {
 		
-		parseFloatingPointNumbersRule.parse(tree);
+		parseFloatingPointNumbersAndVariablesRule.parse(tree);
 		parseIntegerNumbersRule.parse(tree);
 	};
 	
 	private static QueryParserRule parseStringsRule = (tree) -> {
 		
-		forAllDescendantsOrSelfThatMatch(tree, "^(['\"]).+\\1$",
-				match -> StringQueryNode.parse(match));
+		forChildrenThatMatch(tree, "^(['\"]).*\\1$",
+				match -> new StringQueryNode().parse(match));
 	};
 	
 	private static QueryParserRule parseSingleTokensRule = (tree) -> {
 		
-		parseNumbersRule.parse(tree);
+		parseNumbersAndVariablesRule.parse(tree);
 		parseStringsRule.parse(tree);
 	};
 	
 	private static QueryParserRule parseEntriesRule = (tree) -> {
 		
-		forAllDescendantsOrSelfThatMatch(tree, "^:$",
-				match -> EntryQueryNode.parse(match));
+		forChildrenThatMatch(tree, "^:$",
+				match -> new EntryQueryNode().parse(match));
+	};
+	
+	private static QueryParserRule parseEqualsRule = (tree) -> {
+		
+		forChildrenThatMatch(tree, "^==$",
+				match -> new EqualsQueryNode().parse(match));
+	};
+	
+	private static QueryParserRule parseNotEqualsRule = (tree) -> {
+		
+		forChildrenThatMatch(tree, "^!=$",
+				match -> new NotEqualsQueryNode().parse(match));
+	};
+	
+	private static QueryParserRule parseLessThanRule = (tree) -> {
+		
+		forChildrenThatMatch(tree, "^<$",
+				match -> new LessThanQueryNode().parse(match));
+	};
+	
+	private static QueryParserRule parseLessThanOrEqualRule = (tree) -> {
+		
+		forChildrenThatMatch(tree, "^<=$",
+				match -> new LessThanOrEqualsQueryNode().parse(match));
+	};
+	
+	private static QueryParserRule parseGreaterThanRule = (tree) -> {
+		
+		forChildrenThatMatch(tree, "^>$",
+				match -> new GreaterThanQueryNode().parse(match));
+	};
+	
+	private static QueryParserRule parseGreaterThanOrEqualRule = (tree) -> {
+		
+		forChildrenThatMatch(tree, "^>=$",
+				match -> new GreaterThanQueryNode().parse(match));
+	};
+	
+	private static QueryParserRule parseNotRule = (tree) -> {
+		
+		forChildrenThatMatch(tree, "^!$",
+				match -> new NotQueryNode().parse(match));
+	};
+	
+	private static QueryParserRule parseAndRule = (tree) -> {
+		
+		forChildrenThatMatch(tree, "^&&$",
+				match -> new AndQueryNode().parse(match));
+	};
+	
+	private static QueryParserRule parseOrRule = (tree) -> {
+		
+		forChildrenThatMatch(tree, "^\\|\\|$",
+				match -> new OrQueryNode().parse(match));
+	};
+	
+	private static QueryParserRule parseAliasRule = (tree) -> {
+		
+		forChildrenThatMatch(tree, "^as$",
+				match -> new AliasTableQueryNode().parse(match));
 	};
 	
 	private static QueryParserRule parseSimpleLeftRightTokensRule = (tree) -> {
 		
 		parseEntriesRule.parse(tree);
+		parseEqualsRule.parse(tree);
+		parseNotEqualsRule.parse(tree);
+		parseLessThanRule.parse(tree);
+		parseLessThanOrEqualRule.parse(tree);
+		parseGreaterThanRule.parse(tree);
+		parseGreaterThanOrEqualRule.parse(tree);
+		parseNotRule.parse(tree);
+		parseAndRule.parse(tree);
+		parseOrRule.parse(tree);
+		parseAliasRule.parse(tree);
 	};
 	
 	private static QueryParserRule parseTableTokensRule = (tree) -> {
 		
-		forAllDescendantsOrSelfThatMatch(tree, "^table$",
-				match -> TableQueryNode.parse(match));
+		forChildrenThatMatch(tree, "^table$",
+				match -> new TableQueryNode().parse(match));
 	};
 	
 	private static QueryParserRule parseSimpleRightTokensRule = (tree) -> {
@@ -87,56 +226,104 @@ public class QueryNodeParser {
 		parseTableTokensRule.parse(tree);
 	};
 	
-	private static QueryParserRule parseGroupRule = (tree) -> {
-		
-		List<TreeNode> list = descendantsThatHaveChildren(tree);
-		
-		if (list != null) {
-			
-			for (TreeNode match : list) {
-				
-				if (match.getEnterLabel().equals("(")) {
-					
-					GroupQueryNode.parse(match);
-				}
-			}
-		}
-	};
-	
 	private static QueryParserRule parseMapRule = (tree) -> {
 		
-		List<TreeNode> list = descendantsThatHaveChildren(tree);
+		List<TreeNode> list = childrenThatHaveChildren(tree);
 		
-		if (list != null) {
+		for (TreeNode match : list) {
 			
-			for (TreeNode match : list) {
+			String enterLabel = match.getEnterLabel();
+			
+			if (enterLabel != null && enterLabel.equals("{")) {
 				
-				if (match.getEnterLabel().equals("{")) {
-					
-					MapQueryNode.parse(match);
-				}
+				new MapQueryNode().parse(match);
 			}
 		}
 	};
 	
 	private static QueryParserRule parseAddRowRule = (tree) -> {
 		
-		forAllDescendantsOrSelfThatMatch(tree, "^addRow$",
-				match -> AddRowQueryNode.parse(match));
+		forChildrenThatMatch(tree, "^addRow$",
+				match -> new AddRowQueryNode().parse(match));
 	};
 	
-	private static QueryParserRule parseGetRowsRule = (tree) -> {
+	private static QueryParserRule parseJoinRule = (tree) -> {
 		
-		forAllDescendantsOrSelfThatMatch(tree, "^getRows$",
-				match -> GetRowsQueryNode.parse(match));
+		forChildrenThatMatch(tree, "^join$",
+				match -> new JoinQueryNode().parse(match));
+	};
+	
+	private static QueryParserRule parseWhereRule = (tree) -> {
+		
+		forChildrenThatMatch(tree, "^where$",
+				match -> new WhereQueryNode().parse(match));
+	};
+	
+	private static QueryParserRule parseLimitRule = (tree) -> {
+		
+		forChildrenThatMatch(tree, "^limit$",
+				match -> new LimitQueryNode().parse(match));
+	};
+	
+	private static QueryParserRule parseListRule = (tree) -> {
+		
+		forChildrenThatMatch(tree, "^,$",
+				match -> new ListQueryNode().parse(match));
+	};
+	
+	private static QueryParserRule parseSelectRule = (tree) -> {
+		
+		forChildrenThatMatch(tree, "^select$",
+				match -> new SelectQueryNode().parse(match));
 	};
 	
 	private static QueryParserRule parseComplexTokensRule = (tree) -> {
 		
 		parseMapRule.parse(tree);
 		parseAddRowRule.parse(tree);
-		parseGetRowsRule.parse(tree);
+		parseJoinRule.parse(tree);
+		parseWhereRule.parse(tree);
+		parseListRule.parse(tree);
+		parseSelectRule.parse(tree);
+		parseLimitRule.parse(tree);
 	};
+	
+	private static QueryParserRule parseBlocksRule = null;
+	
+	private static QueryParserRule parseBlockRule = (tree) -> {
+		
+		parseBlocksRule.parse(tree);
+		parseSingleTokensRule.parse(tree);
+		parseSimpleRightTokensRule.parse(tree);
+		parseSimpleLeftRightTokensRule.parse(tree);
+		parseComplexTokensRule.parse(tree);
+		
+		String enterLabel = tree.getEnterLabel();
+		
+		if (enterLabel != null) {
+			
+			if (enterLabel.equals("(")) {
+			
+				new BlockQueryNode().parse(tree);
+				
+			} else if (enterLabel.equals("{")) {
+				
+				new MapQueryNode().parse(tree);
+			}
+		}
+	};
+	
+	static {
+		parseBlocksRule = (tree) -> {
+			
+			List<TreeNode> list = childrenThatHaveChildren(tree);
+			
+			for (TreeNode match : list) {
+				
+				parseBlockRule.parse(match);
+			}
+		};
+	}
 	
 	private static List<TreeNode> descendantsOrSelfThatHaveChildren(TreeNode treeNode) {
 		
@@ -160,7 +347,36 @@ public class QueryNodeParser {
 		
 		return null;
 	}
-	
+
+	private static void forChildrenThatMatch(TreeNode treeNode, String regex, QueryParserRule rule) throws QueryParseException {
+		
+		if (treeNode.hasChildren()) {
+			
+			List<TreeNode> matches = treeNode.children.stream().filter(child -> {
+				
+				String label = child.getLabel();
+				return label != null && label.matches(regex);
+				
+			}).collect(Collectors.toList());
+			
+			forEach(matches.stream(), child -> rule.parse(child));
+		}
+	}
+
+	private static List<TreeNode> childrenThatHaveChildren(TreeNode treeNode) {
+		
+		if (treeNode.hasChildren()) {
+			
+			List<TreeNode> matches = treeNode.children.stream()
+					.filter(child -> child != null && child.hasChildren())
+					.collect(Collectors.toList());
+			
+			return matches;
+		}
+		
+		return Arrays.asList();
+	}
+
 	private static List<TreeNode> descendantsThatHaveChildren(TreeNode treeNode) {
 		
 		if (treeNode.hasChildren()) {
@@ -180,7 +396,7 @@ public class QueryNodeParser {
 			return results;
 		}
 		
-		return null;
+		return Arrays.asList();
 	}
 
 	public static List<TreeNode> descendantsOrSelfMatch(TreeNode treeNode, String regex) {
@@ -248,8 +464,6 @@ public class QueryNodeParser {
 	
 	public static void forAllDescendantsOrSelfThatMatchStream(TreeNode treeNode, String regex, QueryParserRule rule) throws QueryParseException {
 		
-		List<TreeNode> results = new ArrayList<TreeNode>();
-		
 		if (treeNode.hasChildren()) {
 			
 			forEach(treeNode.children.stream(),
@@ -273,6 +487,25 @@ public class QueryNodeParser {
 			TreeNode node = it.next();
 			rule.parse(node);
 		}
+	}
+	
+	public static Stream<TreeNode> forAllDescendantsOrSelf(TreeNode treeNode) throws QueryParseException {
+		
+		if (treeNode != null && treeNode.hasChildren()) {
+			
+			return Stream.concat(
+					treeNode.children.stream().flatMap(child -> {
+						try {
+							return forAllDescendantsOrSelf(child);
+						} catch (QueryParseException e) {
+							e.printStackTrace();
+						}
+						return Stream.of();
+					}),
+					Stream.of(treeNode));
+		}
+		
+		return Stream.of(treeNode);
 	}
 
 }

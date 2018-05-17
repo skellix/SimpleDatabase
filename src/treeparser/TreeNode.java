@@ -6,6 +6,8 @@ import java.util.Collection;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
+import com.skellix.database.table.query.node.StringQueryNode;
+
 import treeparser.io.IOSource;
 
 public class TreeNode implements Serializable {
@@ -180,7 +182,13 @@ public class TreeNode implements Serializable {
 	}
 	
 	public String getEnterLabel() {
+		if (source == null) {
+			return null;
+		}
 		int length = (enter - start) + 1;
+		if (length < 0) {
+			return null;
+		}
 		if (start + length > source.buffer.limit()) {
 			return null;
 		}
@@ -204,6 +212,11 @@ public class TreeNode implements Serializable {
 	public int getStartColumn() {
 		
 		if (start == -1) {
+			return 0;
+		}
+		
+		if (start >= source.buffer.limit()) {
+			
 			return 0;
 		}
 		
@@ -234,6 +247,25 @@ public class TreeNode implements Serializable {
 	
 	public boolean hasChildren() {
 		return children != null && !children.isEmpty();
+	}
+	
+	public void removeFromParent() {
+		
+		parent.children.remove(this);
+	}
+	
+	public void replaceWith(TreeNode replaceNode) {
+		
+		if (hasParent()) {
+			
+			int index = getIndex();
+			
+			if (index >= 0) {
+				
+				parent.children.add(index, replaceNode);
+				parent.children.remove(this);
+			}
+		}
 	}
 
 	public void add(ArrayList<TreeNode> childNodes) {
@@ -410,4 +442,5 @@ public class TreeNode implements Serializable {
 		
 		return stringBuilder.toString();
 	}
+
 }

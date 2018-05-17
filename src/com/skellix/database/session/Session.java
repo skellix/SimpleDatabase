@@ -1,17 +1,23 @@
 package com.skellix.database.session;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.locks.Lock;
 
-import com.skellix.database.table.query.QueryNode;
 import com.skellix.database.table.query.QueryNodeParser;
-import com.skellix.database.table.query.QueryParseException;
+import com.skellix.database.table.query.exception.QueryParseException;
+import com.skellix.database.table.query.node.QueryNode;
 
 public class Session implements AutoCloseable {
 	
 	private boolean hasWritePermission = false;
 	private List<Lock> locksHeld = new ArrayList<>();
+	private Path startDir = Paths.get(".").normalize();
+	public Map<String, Object> variables = new HashMap<>();
 
 	private Session(boolean hasWritePermission) {
 		
@@ -62,6 +68,16 @@ public class Session implements AutoCloseable {
 		}
 		
 		locksHeld.clear();
+	}
+	
+	public void setStartDirectory(Path startDir) {
+		
+		this.startDir = startDir;
+	}
+	
+	public Path getStartDirectory() {
+		
+		return startDir;
 	}
 
 }

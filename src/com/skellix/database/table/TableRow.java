@@ -5,6 +5,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -15,22 +16,29 @@ import com.skellix.database.table.row.column.TableColumn;
 
 public class TableRow {
 
-	public MappedByteBuffer buffer;
+	public ByteBuffer buffer;
 	public int offset;
 	public int size;
 	@SuppressWarnings("rawtypes")
 	public List<TableColumn> columns;
-
-	private TableRow(MappedByteBuffer buffer, int offset, int size) {
+	public RowFormat rowFormat;
+	
+	protected TableRow() {
 		
-		this.buffer = buffer;
+		//
+	}
+
+	private TableRow(ExperimentalTable table, int offset, int size) {
+		
+		this.rowFormat = table.rowFormat;
+		this.buffer = table.buffer;
 		this.offset = offset;
 		this.size = size;
 	}
 
 	public static TableRow map(ExperimentalTable table, int offset, int rowSize) {
 		
-		TableRow tableRow = new TableRow(table.buffer, offset, rowSize);
+		TableRow tableRow = new TableRow(table, offset, rowSize);
 		
 		@SuppressWarnings("rawtypes")
 		List<TableColumn> columns = new ArrayList<>();
@@ -186,13 +194,18 @@ public class TableRow {
 			e.printStackTrace();
 		}
 	}
-
-	public void debugPrint() {
+	
+	public String debugString() {
 		
 		buffer.position(offset);
 		byte[] rowData = new byte[size];
 		buffer.get(rowData);
-		System.out.printf("@%-4d %s\n", offset, Arrays.toString(rowData));
+		return String.format("@%-4d %s\n", offset, Arrays.toString(rowData));
+	}
+
+	public void debugPrint() {
+		
+		System.out.print(debugString());
 	}
 
 	public Object[] getValueArray() {
@@ -209,6 +222,12 @@ public class TableRow {
 			values[i] = columns.get(i).get();
 		}
 		return values;
+	}
+	
+	@Override
+	public String toString() {
+		
+		return debugString();
 	}
 
 }

@@ -90,6 +90,23 @@ public enum ColumnType {
 		}
 		return 4;
 	}
+	
+	public int minimumByteLength() {
+		
+		switch (this) {
+		case BOOLEAN:
+		case BYTE:
+		case CHAR:
+		case INT:
+		case LONG:
+		case FLOAT:
+		case DOUBLE: return defaultByteLength();
+		case STRING: return CHAR.minimumByteLength();
+		case BYTE_ARRAY: return 16;
+		case OBJECT: return 32;
+		}
+		return 0;
+	}
 
 	public int defaultByteLength() {
 		
@@ -160,6 +177,23 @@ public enum ColumnType {
 			
 		}
 		return null;
+	}
+
+	public String getDefaultValueString() {
+		
+		switch (this) {
+		case BOOLEAN: return "false";
+		case BYTE: return "0";
+		case CHAR: return "' '";
+		case INT: return "0";
+		case LONG: return "0";
+		case FLOAT: return "0.0";
+		case DOUBLE: return "0.0";
+		case STRING: return "''";
+		case BYTE_ARRAY: return "()";
+		case OBJECT: return "NULL";
+		}
+		return "NULL";
 	}
 	
 }

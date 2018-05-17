@@ -14,6 +14,7 @@ import javax.script.ScriptException;
 
 import com.skellix.database.table.ExperimentalTable;
 import com.skellix.database.table.RowFormat;
+import com.skellix.database.table.query.node.QueryNode;
 
 public class TableQuery {
 

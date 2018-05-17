@@ -18,6 +18,8 @@ import com.skellix.database.table.RowFormatterException;
 import com.skellix.database.table.TableFormat;
 import com.skellix.database.table.TableFormatter;
 import com.skellix.database.table.TableRow;
+import com.skellix.database.table.query.exception.QueryParseException;
+import com.skellix.database.table.query.node.QueryNode;
 
 class TestNodeQuery {
 
@@ -50,10 +52,14 @@ class TestNodeQuery {
 		}
 		table.initTable();
 		
-		{
-			TableRow row = table.addRow();
+		try (Session session = Session.createNewSession(true)) {
+			
+			TableRow row = table.addRow(session);
 			row.columns.get(name).set("test");
 			row.columns.get(age).set(50L);
+			
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 		
 		QueryNode addRowQueryNode = null;

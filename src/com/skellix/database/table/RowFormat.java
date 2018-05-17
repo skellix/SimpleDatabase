@@ -8,6 +8,7 @@ import java.nio.file.StandardOpenOption;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /***
  * This class is used for storing the row format of a table, including:</br>
@@ -71,6 +72,42 @@ public class RowFormat {
 		}
 		
 		return sb.toString();
+	}
+	
+	public String getInsertString() {
+		
+		StringBuilder sb = new StringBuilder();
+		
+		sb.append("{");
+		
+		String keysString = columnNames.stream()
+				.map(key -> String.format("'%s': %s", key, columnTypes.get(key).getDefaultValueString()))
+				.collect(Collectors.joining(", "));
+		
+		sb.append(keysString);
+		sb.append("}");
+		
+		return sb.toString();
+	}
+
+	public void printHeader(TableFormat format) {
+		
+		TableFormatter.printTableStart(this, format);
+	}
+	
+	public String getHeader(TableFormat format) {
+		
+		return TableFormatter.getTableStart(this, format);
+	}
+	
+	public void printEnd(TableFormat format) {
+		
+		TableFormatter.printTableEnd(this, format);
+	}
+	
+	public String getEnd(TableFormat format) {
+		
+		return TableFormatter.getTableEnd(this, format);
 	}
 
 }

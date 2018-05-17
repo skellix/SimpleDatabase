@@ -9,6 +9,8 @@ import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 
+import com.skellix.database.session.Session;
+
 class TestExperimentalTable {
 
 	@Test
@@ -69,11 +71,16 @@ class TestExperimentalTable {
 		// 100000  in   25.587s
 		// 1000000 in  264.326s
 		
-		for (int i = 0 ; i < 100 ; i ++) {
+		try (Session session = Session.createNewSession(true)) {
 			
-			TableRow row = table.addRow();
-			row.columns.get(username).set("test");
-			row.columns.get(password).set("testpassword");
+			for (int i = 0 ; i < 1 ; i ++) {
+				
+				TableRow row = table.addRow(session);
+				row.columns.get(username).set("test");
+				row.columns.get(password).set("testpassword");
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 		
 		System.out.println("limit: " + table.buffer.limit());
@@ -95,6 +102,8 @@ class TestExperimentalTable {
 		
 		long queryTime = System.currentTimeMillis() - queryStart;
 		System.out.println("query time: " + queryTime + "ms");
+		
+		table.debugPrint();
 		
 	}
 

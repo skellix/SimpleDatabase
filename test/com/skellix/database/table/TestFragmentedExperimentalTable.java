@@ -8,6 +8,8 @@ import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 
+import com.skellix.database.session.Session;
+
 class TestFragmentedExperimentalTable {
 
 	@Test
@@ -37,39 +39,44 @@ class TestFragmentedExperimentalTable {
 			e.printStackTrace();
 		}
 		
-		System.out.println("limit: " + table.buffer.limit());
+//		System.out.println("limit: " + table.buffer.limit());
 		
-		// 1       in   0.058s
-		// 10      in   0.074s
-		// 100     in   0.132s
-		// 1000    in   0.514s
-		// 10000   in   1.982s
-		// 100000  in  12.089s
+		// 1       in   0.030s
+		// 10      in   0.034s
+		// 100     in   0.086s
+		// 1000    in   0.423s
+		// 10000   in   3.326s
+		// 100000  in  33.035s
 		// 1000000 in 114.345s
 		
-		for (int i = 0 ; i < 10000 ; i ++) {
-			
-			TableRow row0 = table.addRow();
-			row0.columns.get(username).set("test");
-			row0.columns.get(password).set("testpassword");
-			
-			TableRow row1 = table.addRow();
-			row1.columns.get(username).set("test");
-			row1.columns.get(password).set("testpassword");
-			
-			TableRow row2 = table.addRow();
-			row2.columns.get(username).set("test");
-			row2.columns.get(password).set("testpassword");
-			
-			table.deleteRow(row1);
+		try (Session session = Session.createNewSession(true)) {
+		
+			for (int i = 0 ; i < 100 ; i ++) {
+				
+				TableRow row0 = table.addRow(session);
+				row0.columns.get(username).set("test");
+				row0.columns.get(password).set("testpassword");
+				
+				TableRow row1 = table.addRow(session);
+				row1.columns.get(username).set("test");
+				row1.columns.get(password).set("testpassword");
+				
+				TableRow row2 = table.addRow(session);
+				row2.columns.get(username).set("test");
+				row2.columns.get(password).set("testpassword");
+				
+				table.deleteRow(row1, session);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 		
-		System.out.println("limit: " + table.buffer.limit());
-		System.out.println("row count: " + table.rowCount());
-		
-		table.debugPrint();
-		table.clean();
-		table.debugPrint();
+//		System.out.println("limit: " + table.buffer.limit());
+//		System.out.println("row count: " + table.rowCount());
+//		
+//		table.debugPrint();
+//		table.clean();
+//		table.debugPrint();
 	}
 
 }
