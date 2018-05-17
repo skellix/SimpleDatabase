@@ -1,4 +1,4 @@
-package com.skellix.database.table;
+package com.skellix.database.row;
 
 public class RowFormatterException extends Exception {
 

@@ -1,5 +1,6 @@
 package com.skellix.database.table;
 
+import com.skellix.database.row.TableRow;
 import com.skellix.database.table.row.column.BooleanTableColumn;
 import com.skellix.database.table.row.column.ByteArrayTableColumn;
 import com.skellix.database.table.row.column.ByteTableColumn;

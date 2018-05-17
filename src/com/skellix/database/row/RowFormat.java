@@ -1,4 +1,4 @@
-package com.skellix.database.table;
+package com.skellix.database.row;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -9,6 +9,10 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import com.skellix.database.table.ColumnType;
+import com.skellix.database.table.TableFormat;
+import com.skellix.database.table.TableFormatter;
 
 /***
  * This class is used for storing the row format of a table, including:</br>

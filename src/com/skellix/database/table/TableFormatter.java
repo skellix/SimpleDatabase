@@ -2,6 +2,9 @@ package com.skellix.database.table;
 
 import java.util.stream.Collectors;
 
+import com.skellix.database.row.RowFormat;
+import com.skellix.database.row.TableRow;
+
 public class TableFormatter {
 	
 	public static void printTableRow(ExperimentalTable table, TableRow row, TableFormat format) {

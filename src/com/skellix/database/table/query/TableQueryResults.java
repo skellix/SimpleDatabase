@@ -8,8 +8,8 @@ import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.skellix.database.row.RowFormat;
 import com.skellix.database.table.ExperimentalTable;
-import com.skellix.database.table.RowFormat;
 import com.skellix.database.table.TableFormat;
 
 @SuppressWarnings("restriction")

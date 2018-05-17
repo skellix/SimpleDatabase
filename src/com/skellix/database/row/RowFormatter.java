@@ -1,4 +1,4 @@
-package com.skellix.database.table;
+package com.skellix.database.row;
 
 import java.io.IOException;
 import java.nio.BufferUnderflowException;
@@ -12,6 +12,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import com.skellix.database.table.ColumnType;
 
 import treeparser.TreeNode;
 import treeparser.TreeParser;

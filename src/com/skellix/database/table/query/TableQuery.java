@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.script.Invocable;
@@ -12,8 +11,8 @@ import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 
+import com.skellix.database.row.RowFormat;
 import com.skellix.database.table.ExperimentalTable;
-import com.skellix.database.table.RowFormat;
 import com.skellix.database.table.query.node.QueryNode;
 
 public class TableQuery {

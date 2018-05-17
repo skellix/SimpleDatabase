@@ -1,4 +1,4 @@
-package com.skellix.database.table;
+package com.skellix.database.row;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -12,6 +12,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.skellix.database.table.ColumnType;
+import com.skellix.database.table.ExperimentalTable;
 import com.skellix.database.table.row.column.TableColumn;
 
 public class TableRow {

@@ -2,6 +2,8 @@ package com.skellix.database.table;
 
 import java.util.stream.Stream;
 
+import com.skellix.database.row.RowFormat;
+import com.skellix.database.row.TableRow;
 import com.skellix.database.session.Session;
 
 public class LimitedTable extends ExperimentalTable {

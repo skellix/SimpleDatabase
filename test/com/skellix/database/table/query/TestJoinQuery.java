@@ -3,16 +3,13 @@ package com.skellix.database.table.query;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Test;
 
+import com.skellix.database.row.RowFormatter;
+import com.skellix.database.row.RowFormatterException;
 import com.skellix.database.session.Session;
 import com.skellix.database.table.ExperimentalTable;
-import com.skellix.database.table.RowFormat;
-import com.skellix.database.table.RowFormatter;
-import com.skellix.database.table.RowFormatterException;
-import com.skellix.database.table.TableFormat;
 import com.skellix.database.table.TableFormatter;
 
 class TestJoinQuery {

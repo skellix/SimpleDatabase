@@ -4,11 +4,11 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.concurrent.locks.Lock;
 
+import com.skellix.database.row.RowFormat;
+import com.skellix.database.row.TableRow;
 import com.skellix.database.session.IllegalWriteException;
 import com.skellix.database.session.Session;
 import com.skellix.database.table.ExperimentalTable;
-import com.skellix.database.table.RowFormat;
-import com.skellix.database.table.TableRow;
 import com.skellix.database.table.query.exception.QueryParseException;
 
 import treeparser.TreeNode;

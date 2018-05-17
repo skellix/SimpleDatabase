@@ -4,6 +4,8 @@ import java.nio.MappedByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.skellix.database.row.RowFormat;
+import com.skellix.database.row.TableRow;
 import com.skellix.database.table.row.column.TableColumn;
 
 public class CombinedTableRow extends TableRow {

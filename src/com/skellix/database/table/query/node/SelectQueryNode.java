@@ -5,11 +5,10 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 
+import com.skellix.database.row.RowFormat;
 import com.skellix.database.session.Session;
 import com.skellix.database.table.ExperimentalTable;
-import com.skellix.database.table.LimitedTable;
 import com.skellix.database.table.ReformattedTable;
-import com.skellix.database.table.RowFormat;
 import com.skellix.database.table.query.exception.QueryParseException;
 import com.skellix.database.table.query.type.ListType;
 import com.skellix.database.table.query.type.ValueType;

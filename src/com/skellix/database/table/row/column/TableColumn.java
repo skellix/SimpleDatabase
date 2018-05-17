@@ -1,7 +1,7 @@
 package com.skellix.database.table.row.column;
 
+import com.skellix.database.row.TableRow;
 import com.skellix.database.table.ColumnType;
-import com.skellix.database.table.TableRow;
 
 public abstract class TableColumn <T> {
 	

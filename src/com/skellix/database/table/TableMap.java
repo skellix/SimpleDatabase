@@ -8,6 +8,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Stream;
 
+import com.skellix.database.row.TableRow;
+
 public class TableMap {
 
 	public static final int mapLengthValueSize = Integer.BYTES;

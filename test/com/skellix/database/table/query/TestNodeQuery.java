@@ -3,21 +3,19 @@ package com.skellix.database.table.query;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.IOException;
-import java.nio.MappedByteBuffer;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
 
 import org.junit.jupiter.api.Test;
 
+import com.skellix.database.row.RowFormat;
+import com.skellix.database.row.RowFormatter;
+import com.skellix.database.row.RowFormatterException;
+import com.skellix.database.row.TableRow;
 import com.skellix.database.session.Session;
 import com.skellix.database.table.ExperimentalTable;
-import com.skellix.database.table.RowFormat;
-import com.skellix.database.table.RowFormatter;
-import com.skellix.database.table.RowFormatterException;
 import com.skellix.database.table.TableFormat;
 import com.skellix.database.table.TableFormatter;
-import com.skellix.database.table.TableRow;
 import com.skellix.database.table.query.exception.QueryParseException;
 import com.skellix.database.table.query.node.QueryNode;
 

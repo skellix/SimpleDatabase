@@ -6,6 +6,10 @@ import java.nio.file.Paths;
 
 import org.junit.jupiter.api.Test;
 
+import com.skellix.database.row.RowFormat;
+import com.skellix.database.row.RowFormatter;
+import com.skellix.database.row.RowFormatterException;
+import com.skellix.database.row.TableRow;
 import com.skellix.database.session.Session;
 
 class TestTypedRows {
