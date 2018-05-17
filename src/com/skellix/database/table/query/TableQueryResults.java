@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.skellix.database.row.RowFormat;
-import com.skellix.database.table.ExperimentalTable;
+import com.skellix.database.table.Table;
 import com.skellix.database.table.TableFormat;
 
 @SuppressWarnings("restriction")
@@ -24,7 +24,7 @@ public class TableQueryResults {
 		this.columnLabels = columnLabels;
 	}
 	
-	public Stream<List<Entry<String, Object>>> stream(ExperimentalTable table) {
+	public Stream<List<Entry<String, Object>>> stream(Table table) {
 		
 		RowFormat rowFormat = table.rowFormat;
 		
@@ -76,7 +76,7 @@ public class TableQueryResults {
 		return null;
 	}
 
-	public void printResults(ExperimentalTable table, TableFormat tableFormat) {
+	public void printResults(Table table, TableFormat tableFormat) {
 		
 		Stream<List<Entry<String, Object>>> stream = stream(table);
 		

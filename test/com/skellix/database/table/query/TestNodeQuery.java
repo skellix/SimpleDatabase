@@ -13,7 +13,7 @@ import com.skellix.database.row.RowFormatter;
 import com.skellix.database.row.RowFormatterException;
 import com.skellix.database.row.TableRow;
 import com.skellix.database.session.Session;
-import com.skellix.database.table.ExperimentalTable;
+import com.skellix.database.table.Table;
 import com.skellix.database.table.TableFormat;
 import com.skellix.database.table.TableFormatter;
 import com.skellix.database.table.query.exception.QueryParseException;
@@ -41,7 +41,7 @@ class TestNodeQuery {
 		Integer name = rowFormat.columnIndexes.get("name");
 		Integer age = rowFormat.columnIndexes.get("age");
 		
-		ExperimentalTable table = ExperimentalTable.getOrCreate(directory, rowFormat);
+		Table table = Table.getOrCreate(directory, rowFormat);
 		try {
 			table.deleteTable();
 		} catch (IOException e) {

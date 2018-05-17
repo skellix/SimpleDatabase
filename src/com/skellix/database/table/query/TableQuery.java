@@ -12,7 +12,7 @@ import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 
 import com.skellix.database.row.RowFormat;
-import com.skellix.database.table.ExperimentalTable;
+import com.skellix.database.table.Table;
 import com.skellix.database.table.query.node.QueryNode;
 
 public class TableQuery {
@@ -26,7 +26,7 @@ public class TableQuery {
 		this.columnLabels = columnReslts;
 	}
 
-	public TableQueryResults queryTable(ExperimentalTable table) {
+	public TableQueryResults queryTable(Table table) {
 		
 		ScriptEngineManager scriptEngineManager = new ScriptEngineManager();
 		ScriptEngine scriptEngine = scriptEngineManager.getEngineByName("js");

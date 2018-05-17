@@ -9,9 +9,9 @@ import com.skellix.database.row.TableRow;
 import com.skellix.database.session.Session;
 import com.skellix.database.table.query.node.QueryNode;
 
-public class FilteredTable extends ExperimentalTable {
+public class FilteredTable extends Table {
 	
-	ExperimentalTable source = null;
+	Table source = null;
 	private QueryNode clause;
 	private Session session;
 	
@@ -25,7 +25,7 @@ public class FilteredTable extends ExperimentalTable {
 		return this;
 	}
 
-	public void setSource(String name, ExperimentalTable table) {
+	public void setSource(String name, Table table) {
 		
 		source = table;
 	}

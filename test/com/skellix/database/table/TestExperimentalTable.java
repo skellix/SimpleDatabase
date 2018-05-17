@@ -52,7 +52,7 @@ class TestExperimentalTable {
 			e1.printStackTrace();
 		}
 		
-		ExperimentalTable table = ExperimentalTable.getOrCreate(directory, rowFormat);
+		Table table = Table.getOrCreate(directory, rowFormat);
 		try {
 			table.deleteTable();
 		} catch (IOException e) {

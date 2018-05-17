@@ -24,9 +24,9 @@ import com.skellix.database.row.RowFormatterException;
 import com.skellix.database.row.TableRow;
 import com.skellix.database.session.Session;
 
-public class ExperimentalTable {
+public class Table {
 	
-	public static Map<String, ExperimentalTable> openTables = new LinkedHashMap<>();
+	public static Map<String, Table> openTables = new LinkedHashMap<>();
 	
 	private Path tableFile;
 	private Path tableMapFile;
@@ -36,12 +36,12 @@ public class ExperimentalTable {
 	
 	private ReadWriteLock locker = new ReentrantReadWriteLock(true);
 	
-	protected ExperimentalTable() {
+	protected Table() {
 		
 		//
 	}
 	
-	private ExperimentalTable(Path directory, RowFormat rowFormat) {
+	private Table(Path directory, RowFormat rowFormat) {
 		
 		synchronized (openTables) {
 			
@@ -84,7 +84,7 @@ public class ExperimentalTable {
 		}
 	}
 	
-	public static ExperimentalTable getOrCreate(Path directory, RowFormat rowFormat) {
+	public static Table getOrCreate(Path directory, RowFormat rowFormat) {
 		
 		String uid = uid(directory);
 		
@@ -95,11 +95,11 @@ public class ExperimentalTable {
 				return openTables.get(uid);
 			}
 			
-			return new ExperimentalTable(directory, rowFormat);
+			return new Table(directory, rowFormat);
 		}
 	}
 	
-	public static ExperimentalTable getById(String tableIdString) throws FileNotFoundException,RowFormatterException {
+	public static Table getById(String tableIdString) throws FileNotFoundException,RowFormatterException {
 		
 		Path directory = Paths.get(tableIdString);
 		
@@ -136,7 +136,7 @@ public class ExperimentalTable {
 			throw e;
 		}
 		
-		return new ExperimentalTable(directory, rowFormat);
+		return new Table(directory, rowFormat);
 	}
 	
 	public String getName() {
@@ -178,8 +178,8 @@ public class ExperimentalTable {
 	public static void deleteTable(Path tablePath) throws IOException {
 		
 		
-		String uid = ExperimentalTable.uid(tablePath);
-		ExperimentalTable table = openTables.get(uid);
+		String uid = Table.uid(tablePath);
+		Table table = openTables.get(uid);
 		
 		if (table == null) {
 			

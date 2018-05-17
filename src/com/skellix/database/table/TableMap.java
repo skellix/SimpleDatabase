@@ -53,7 +53,7 @@ public class TableMap {
 		return Math.max(defaultNumberOfPointers, numberOfEntries);
 	}
 
-	public static TableMap read(ExperimentalTable table, int position) {
+	public static TableMap read(Table table, int position) {
 		
 		Map<Integer, TableMap> openMaps = openTableMaps.get(table.uid());
 		
@@ -112,7 +112,7 @@ public class TableMap {
 //		buffer.putInt(indexOfNextMap);
 	}
 	
-	public static void removeMapsForTable(ExperimentalTable table) {
+	public static void removeMapsForTable(Table table) {
 		
 		openTableMaps.remove(table.uid());
 	}
@@ -159,7 +159,7 @@ public class TableMap {
 //		writeAt(table.tableMapBuffer, position);
 //	}
 //	
-	public TableRow addRow(ExperimentalTable table, int rowSize) {
+	public TableRow addRow(Table table, int rowSize) {
 		
 		if (numberOfEntries == 0) {
 			

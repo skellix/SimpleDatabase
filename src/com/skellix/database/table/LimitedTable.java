@@ -6,9 +6,9 @@ import com.skellix.database.row.RowFormat;
 import com.skellix.database.row.TableRow;
 import com.skellix.database.session.Session;
 
-public class LimitedTable extends ExperimentalTable {
+public class LimitedTable extends Table {
 	
-	ExperimentalTable source = null;
+	Table source = null;
 	private long limit;
 	
 	public LimitedTable() {
@@ -22,7 +22,7 @@ public class LimitedTable extends ExperimentalTable {
 		return this;
 	}
 
-	public void setSource(String name, ExperimentalTable table) {
+	public void setSource(String name, Table table) {
 		
 		source = table;
 	}

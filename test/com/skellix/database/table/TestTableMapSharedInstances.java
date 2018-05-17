@@ -35,7 +35,7 @@ class TestTableMapSharedInstances {
 		Integer username = rowFormat.columnIndexes.get("username");
 		Integer password = rowFormat.columnIndexes.get("password");
 		
-		ExperimentalTable table = ExperimentalTable.getOrCreate(directory, rowFormat);
+		Table table = Table.getOrCreate(directory, rowFormat);
 		try {
 			table.deleteTable();
 			table.initTable();

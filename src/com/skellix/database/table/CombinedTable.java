@@ -11,9 +11,9 @@ import com.skellix.database.row.TableRow;
 import com.skellix.database.session.Session;
 import com.skellix.database.table.query.node.QueryNode;
 
-public class CombinedTable extends ExperimentalTable {
+public class CombinedTable extends Table {
 	
-	Map<String, ExperimentalTable> sources = new LinkedHashMap<>();
+	Map<String, Table> sources = new LinkedHashMap<>();
 	private QueryNode clause;
 	private Session session;
 	
@@ -44,7 +44,7 @@ public class CombinedTable extends ExperimentalTable {
 		return this;
 	}
 
-	public void setSource(String name, ExperimentalTable table) {
+	public void setSource(String name, Table table) {
 		
 		sources.put(name, table);
 	}

@@ -7,13 +7,13 @@ import com.skellix.database.row.TableRow;
 
 public class TableFormatter {
 	
-	public static void printTableRow(ExperimentalTable table, TableRow row, TableFormat format) {
+	public static void printTableRow(Table table, TableRow row, TableFormat format) {
 		
 		System.out.printf(getRowFormatString(table, format), row.getValueArray());
 		System.out.println();
 	}
 	
-	public static String getRowFormatString(ExperimentalTable table, TableFormat format) {
+	public static String getRowFormatString(Table table, TableFormat format) {
 		
 		StringBuilder sb = new StringBuilder();
 		String last = null;
@@ -58,7 +58,7 @@ public class TableFormatter {
 		return sb.toString();
 	}
 	
-	public static void printTableStart(ExperimentalTable table, TableFormat format) {
+	public static void printTableStart(Table table, TableFormat format) {
 		
 		printTableStart(table.rowFormat, format);
 	}
@@ -160,7 +160,7 @@ public class TableFormatter {
 		return result.toString();
 	}
 	
-	public static void printTableEnd(ExperimentalTable table, TableFormat format) {
+	public static void printTableEnd(Table table, TableFormat format) {
 		
 		printTableEnd(table.rowFormat, format);
 	}
@@ -206,7 +206,7 @@ public class TableFormatter {
 		return "";
 	}
 
-	public static void printRows(ExperimentalTable table) {
+	public static void printRows(Table table) {
 		
 		new Runnable() {
 			

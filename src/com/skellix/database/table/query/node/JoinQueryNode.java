@@ -5,7 +5,7 @@ import java.util.concurrent.locks.Lock;
 import com.skellix.database.row.RowFormat;
 import com.skellix.database.session.Session;
 import com.skellix.database.table.CombinedTable;
-import com.skellix.database.table.ExperimentalTable;
+import com.skellix.database.table.Table;
 import com.skellix.database.table.query.exception.QueryParseException;
 
 import treeparser.TreeNode;
@@ -91,16 +91,16 @@ public class JoinQueryNode extends QueryNode {
 		
 		Object tableQueryResult1 = originTable.query(session);
 		
-		if (tableQueryResult1 instanceof ExperimentalTable) {
+		if (tableQueryResult1 instanceof Table) {
 			
-			ExperimentalTable table1 = (ExperimentalTable) tableQueryResult1;
+			Table table1 = (Table) tableQueryResult1;
 			RowFormat rowFormat1 = table1.rowFormat;
 			
 			Object tableQueryResult2 = joinedTable.query(session);
 			
-			if (tableQueryResult2 instanceof ExperimentalTable) {
+			if (tableQueryResult2 instanceof Table) {
 				
-				ExperimentalTable table2 = (ExperimentalTable) tableQueryResult2;
+				Table table2 = (Table) tableQueryResult2;
 				RowFormat rowFormat2 = table2.rowFormat;
 				
 				Lock lock1 = table1.getReadLock();

@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test;
 import com.skellix.database.row.RowFormatter;
 import com.skellix.database.row.RowFormatterException;
 import com.skellix.database.session.Session;
-import com.skellix.database.table.ExperimentalTable;
+import com.skellix.database.table.Table;
 import com.skellix.database.table.TableFormatter;
 
 class TestMultiJoinQuery {
@@ -29,9 +29,9 @@ class TestMultiJoinQuery {
 		
 		try {
 			
-			ExperimentalTable table1 = ExperimentalTable.getOrCreate(directory1, RowFormatter.parse(table1Format));
-			ExperimentalTable table2 = ExperimentalTable.getOrCreate(directory2, RowFormatter.parse(table2Format));
-			ExperimentalTable table3 = ExperimentalTable.getOrCreate(directory3, RowFormatter.parse(table3Format));
+			Table table1 = Table.getOrCreate(directory1, RowFormatter.parse(table1Format));
+			Table table2 = Table.getOrCreate(directory2, RowFormatter.parse(table2Format));
+			Table table3 = Table.getOrCreate(directory3, RowFormatter.parse(table3Format));
 			
 			table1.deleteTable();
 			table2.deleteTable();
@@ -59,9 +59,9 @@ class TestMultiJoinQuery {
 				
 				Object result = QueryNodeParser.parse(sb.toString()).query(session);
 				
-				if (result instanceof ExperimentalTable) {
+				if (result instanceof Table) {
 					
-					ExperimentalTable table = (ExperimentalTable) result;
+					Table table = (Table) result;
 					TableFormatter.printRows(table);
 				}
 				

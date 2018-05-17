@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import com.skellix.database.table.ColumnType;
-import com.skellix.database.table.ExperimentalTable;
+import com.skellix.database.table.Table;
 import com.skellix.database.table.row.column.TableColumn;
 
 public class TableRow {
@@ -30,7 +30,7 @@ public class TableRow {
 		//
 	}
 
-	private TableRow(ExperimentalTable table, int offset, int size) {
+	private TableRow(Table table, int offset, int size) {
 		
 		this.rowFormat = table.rowFormat;
 		this.buffer = table.buffer;
@@ -38,7 +38,7 @@ public class TableRow {
 		this.size = size;
 	}
 
-	public static TableRow map(ExperimentalTable table, int offset, int rowSize) {
+	public static TableRow map(Table table, int offset, int rowSize) {
 		
 		TableRow tableRow = new TableRow(table, offset, rowSize);
 		

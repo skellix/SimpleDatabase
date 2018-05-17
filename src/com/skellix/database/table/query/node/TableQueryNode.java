@@ -7,7 +7,7 @@ import java.nio.file.Paths;
 import com.skellix.database.row.RowFormat;
 import com.skellix.database.row.RowFormatter;
 import com.skellix.database.session.Session;
-import com.skellix.database.table.ExperimentalTable;
+import com.skellix.database.table.Table;
 import com.skellix.database.table.query.exception.QueryParseException;
 
 import treeparser.TreeNode;
@@ -34,7 +34,7 @@ public class TableQueryNode extends QueryNode {
 		replaceNode.replaceWith(this);
 		
 		nextNode.removeFromParent();
-		resultType = ExperimentalTable.class;
+		resultType = Table.class;
 		
 		return this;
 	}
@@ -58,9 +58,9 @@ public class TableQueryNode extends QueryNode {
 			try {
 				
 				Path directory = session.getStartDirectory().resolve(tableIdString);
-				Path formatPath = ExperimentalTable.getFormatPath(directory);
+				Path formatPath = Table.getFormatPath(directory);
 				RowFormat rowFormat = RowFormatter.parse(formatPath);
-				ExperimentalTable table = ExperimentalTable.getOrCreate(directory, rowFormat);
+				Table table = Table.getOrCreate(directory, rowFormat);
 				
 				session.variables.put(Paths.get(tableIdString).getFileName().toString(), table);
 				return table;

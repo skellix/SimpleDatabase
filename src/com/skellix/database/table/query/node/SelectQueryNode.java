@@ -7,7 +7,7 @@ import java.util.concurrent.locks.Lock;
 
 import com.skellix.database.row.RowFormat;
 import com.skellix.database.session.Session;
-import com.skellix.database.table.ExperimentalTable;
+import com.skellix.database.table.Table;
 import com.skellix.database.table.ReformattedTable;
 import com.skellix.database.table.query.exception.QueryParseException;
 import com.skellix.database.table.query.type.ListType;
@@ -35,7 +35,7 @@ public class SelectQueryNode extends QueryNode {
 		
 		QueryNode previousQueryNode = (QueryNode) previousNode;
 		
-		if (!ExperimentalTable.class.isAssignableFrom(previousQueryNode.resultType)) {
+		if (!Table.class.isAssignableFrom(previousQueryNode.resultType)) {
 			
 			String errorString = String.format("ERROR: expected table before '%s' at %d, %d"
 					, replaceNode.getLabel(), previousQueryNode.line, previousQueryNode.getStartColumn());
@@ -79,7 +79,7 @@ public class SelectQueryNode extends QueryNode {
 		children.add(previousNode);
 		children.add(nextNode);
 		
-		resultType = ExperimentalTable.class;
+		resultType = Table.class;
 		
 		return this;
 	}
@@ -95,9 +95,9 @@ public class SelectQueryNode extends QueryNode {
 		
 		Object tableQueryResult = tableNode.query(session);
 		
-		if (tableQueryResult instanceof ExperimentalTable) {
+		if (tableQueryResult instanceof Table) {
 			
-			ExperimentalTable table = (ExperimentalTable) tableQueryResult;
+			Table table = (Table) tableQueryResult;
 			RowFormat rowFormat = table.rowFormat;
 			
 			Lock lock = table.getReadLock();

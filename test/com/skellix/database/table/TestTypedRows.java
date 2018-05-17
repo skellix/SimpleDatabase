@@ -38,7 +38,7 @@ class TestTypedRows {
 			e1.printStackTrace();
 		}
 		
-		ExperimentalTable table = ExperimentalTable.getOrCreate(directory, rowFormat);
+		Table table = Table.getOrCreate(directory, rowFormat);
 		try {
 			table.deleteTable();
 			table.initTable();

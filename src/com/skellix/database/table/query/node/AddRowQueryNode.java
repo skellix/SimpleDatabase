@@ -8,7 +8,7 @@ import com.skellix.database.row.RowFormat;
 import com.skellix.database.row.TableRow;
 import com.skellix.database.session.IllegalWriteException;
 import com.skellix.database.session.Session;
-import com.skellix.database.table.ExperimentalTable;
+import com.skellix.database.table.Table;
 import com.skellix.database.table.query.exception.QueryParseException;
 
 import treeparser.TreeNode;
@@ -32,7 +32,7 @@ public class AddRowQueryNode extends QueryNode {
 		
 		QueryNode previousQueryNode = (QueryNode) previousNode;
 		
-		if (!ExperimentalTable.class.isAssignableFrom(previousQueryNode.resultType)) {
+		if (!Table.class.isAssignableFrom(previousQueryNode.resultType)) {
 			
 			String errorString = String.format("ERROR: expected table before '%s' at %d, %d"
 					, replaceNode.getLabel(), previousQueryNode.line, previousQueryNode.getStartColumn());
@@ -94,7 +94,7 @@ public class AddRowQueryNode extends QueryNode {
 		List<EntryQueryNode> rowMappings = (List<EntryQueryNode>) mappings;
 		
 		Object tableQueryResult = destQuery.query(session);
-		ExperimentalTable table = (ExperimentalTable) tableQueryResult;
+		Table table = (Table) tableQueryResult;
 		RowFormat rowFormat = table.rowFormat;
 		
 		Lock lock = table.getWriteLock();

@@ -12,7 +12,7 @@ import com.skellix.database.row.RowFormat;
 import com.skellix.database.row.RowFormatter;
 import com.skellix.database.row.RowFormatterException;
 import com.skellix.database.session.Session;
-import com.skellix.database.table.ExperimentalTable;
+import com.skellix.database.table.Table;
 import com.skellix.database.table.TableFormatter;
 import com.skellix.database.table.query.exception.QueryParseException;
 
@@ -36,7 +36,7 @@ class TestQueryExperimentalTable {
 				fail(e1.getMessage());
 			}
 			
-			ExperimentalTable table = ExperimentalTable.getOrCreate(directory, rowFormat);
+			Table table = Table.getOrCreate(directory, rowFormat);
 			try {
 				table.deleteTable();
 			} catch (IOException e) {
@@ -67,9 +67,9 @@ class TestQueryExperimentalTable {
 			
 			Object result = QueryNodeParser.parse(queryString).query(session);
 			
-			if (result instanceof ExperimentalTable) {
+			if (result instanceof Table) {
 				
-				ExperimentalTable table = (ExperimentalTable) result;
+				Table table = (Table) result;
 				TableFormatter.printRows(table);
 			}
 			

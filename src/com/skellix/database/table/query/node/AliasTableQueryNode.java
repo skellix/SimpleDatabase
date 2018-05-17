@@ -5,7 +5,7 @@ import java.util.concurrent.locks.Lock;
 import com.skellix.database.row.RowFormat;
 import com.skellix.database.session.Session;
 import com.skellix.database.table.AliasedTable;
-import com.skellix.database.table.ExperimentalTable;
+import com.skellix.database.table.Table;
 import com.skellix.database.table.query.exception.QueryParseException;
 
 import treeparser.TreeNode;
@@ -30,7 +30,7 @@ public class AliasTableQueryNode extends QueryNode {
 		
 		QueryNode previousQueryNode = (QueryNode) previousNode;
 		
-		if (!ExperimentalTable.class.isAssignableFrom(previousQueryNode.resultType)) {
+		if (!Table.class.isAssignableFrom(previousQueryNode.resultType)) {
 			
 			String errorString = String.format("ERROR: expected table before '%s' at %d, %d"
 					, replaceNode.getLabel(), previousQueryNode.line, previousQueryNode.getStartColumn());
@@ -59,7 +59,7 @@ public class AliasTableQueryNode extends QueryNode {
 		
 		copyValuesFrom(replaceNode);
 		
-		resultType = ExperimentalTable.class;
+		resultType = Table.class;
 		
 		return this;
 	}
@@ -73,7 +73,7 @@ public class AliasTableQueryNode extends QueryNode {
 	public Object query(Session session) throws Exception {
 		
 		Object tableQueryResult = tableNode.query(session);
-		ExperimentalTable table = (ExperimentalTable) tableQueryResult;
+		Table table = (Table) tableQueryResult;
 		RowFormat rowFormat = table.rowFormat;
 		
 		Lock lock = table.getReadLock();
